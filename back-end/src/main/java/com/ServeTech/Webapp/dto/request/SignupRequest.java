@@ -1,0 +1,133 @@
+package com.ServeTech.Webapp.dto.request;
+
+import com.ServeTech.Webapp.entity.enums.Gender;
+import jakarta.validation.constraints.*;
+import java.time.LocalDate;
+
+
+// This class will assist in storing data related to signup
+public class SignupRequest {
+
+    @NotBlank(message = "First name is required")
+    @Size(min = 2, max = 100, message = "First name must be between 2 and 100 characters")
+    private String firstName;
+
+    @NotBlank(message = "Last name is required")
+    @Size(min = 2, max = 100, message = "Last name must be between 2 and 100 characters")
+    private String lastName;
+
+    @NotBlank(message = "Phone number is required")
+    @Pattern(regexp = "^[6-9]\\d{9}$", message = "Invalid Indian phone number")
+    private String phoneNumber;
+
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, max = 100, message = "Password must be at least 6 characters")
+    private String password;
+
+    @NotNull(message = "Date of birth is required")
+    @Past(message = "Date of birth must be in the past")
+    private LocalDate dateOfBirth;
+
+    @NotNull(message = "Gender is required")
+    private Gender gender;
+
+    @NotBlank(message = "Pincode is required")
+    @Pattern(regexp = "^[1-9]\\d{5}$", message = "Invalid pincode")
+    private String pincode;
+
+    @Email(message = "Invalid email format")
+    private String email;
+
+    @NotBlank(message = "Role is required")
+    @Pattern(regexp = "^(ROLE_WORKER|ROLE_CLIENT)$", message = "Role must be ROLE_WORKER or ROLE_CLIENT")
+    private String role; // ROLE_WORKER or ROLE_CLIENT
+
+    @NotBlank(message = "OTP is required")
+    @Size(min = 6, max = 6, message = "OTP must be 6 digits")
+    private String otp;
+
+    // Constructors
+    public SignupRequest() {
+    }
+
+    // Getters and Setters
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public String getPincode() {
+        return pincode;
+    }
+
+    public void setPincode(String pincode) {
+        this.pincode = pincode;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getOtp() {
+        return otp;
+    }
+
+    public void setOtp(String otp) {
+        this.otp = otp;
+    }
+}
