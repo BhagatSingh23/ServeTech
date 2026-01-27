@@ -12,7 +12,6 @@ import com.ServeTech.Webapp.repository.*;
 import com.ServeTech.Webapp.security.JwtTokenProvider;
 import com.ServeTech.Webapp.util.UniqueIdGenerator;
 import com.ServeTech.Webapp.util.UsernameGenerator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,35 +22,51 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AuthService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
 
-    @Autowired
-    private PincodeLocationRepository pincodeLocationRepository;
+    private final RoleRepository roleRepository;
 
-    @Autowired
-    private WorkerProfileRepository workerProfileRepository;
 
-    @Autowired
-    private ClientProfileRepository clientProfileRepository;
+    private final PincodeLocationRepository pincodeLocationRepository;
 
-    @Autowired
-    private OtpService otpService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final WorkerProfileRepository workerProfileRepository;
 
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
 
-    @Autowired
-    private UniqueIdGenerator uniqueIdGenerator;
+    private final ClientProfileRepository clientProfileRepository;
 
-    @Autowired
-    private UsernameGenerator usernameGenerator;
+
+    private final OtpService otpService;
+
+
+    private final PasswordEncoder passwordEncoder;
+
+
+    private final JwtTokenProvider jwtTokenProvider;
+
+
+    private final UniqueIdGenerator uniqueIdGenerator;
+
+
+    private final UsernameGenerator usernameGenerator;
+
+    public AuthService(UserRepository userRepository, RoleRepository roleRepository,
+                       PincodeLocationRepository pincodeLocationRepository, WorkerProfileRepository workerProfileRepository,
+                       ClientProfileRepository clientProfileRepository, OtpService otpService,
+                       PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider,
+                       UniqueIdGenerator uniqueIdGenerator, UsernameGenerator usernameGenerator) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.pincodeLocationRepository = pincodeLocationRepository;
+        this.workerProfileRepository = workerProfileRepository;
+        this.clientProfileRepository = clientProfileRepository;
+        this.otpService = otpService;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.uniqueIdGenerator = uniqueIdGenerator;
+        this.usernameGenerator = usernameGenerator;
+    }
 
     // Register user
     @Transactional
