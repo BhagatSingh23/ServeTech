@@ -22,13 +22,6 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // This will be used to encode passwords
-    // One way hashing of BCrypt is used
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
     // This will be used to configure security for the application
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
