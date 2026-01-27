@@ -1,5 +1,6 @@
 package com.ServeTech.Webapp.dto.response;
 
+import com.ServeTech.Webapp.entity.Role;
 import com.ServeTech.Webapp.entity.User;
 import com.ServeTech.Webapp.entity.enums.AccountStatus;
 import com.ServeTech.Webapp.entity.enums.Gender;
@@ -53,7 +54,7 @@ public class UserResponse {
         this.accountStatus = user.getAccountStatus();
         this.phoneVerified = user.isPhoneVerified();
         this.roles = user.getRoles().stream()
-                .map(role -> role.getName())
+                .map(Role::getName)
                 .collect(Collectors.toSet());
         this.profileImageUrl = user.getProfileImageUrl();
     }

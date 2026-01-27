@@ -6,7 +6,6 @@ import com.ServeTech.Webapp.dto.response.AuthResponse;
 import com.ServeTech.Webapp.service.AuthService;
 import com.ServeTech.Webapp.service.OtpService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,16 +15,20 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
 
-    @Autowired
-    private AuthService authService;
 
-    @Autowired
-    private OtpService otpService;
+    private final AuthService authService;
+
+    private final OtpService otpService;
+
+    public AuthController(AuthService authService, OtpService otpService) {
+        this.authService = authService;
+        this.otpService = otpService;
+    }
 
     // Will use to send OTP to user's phone number and other authentication purposes later on
     @PostMapping("/send-otp")
     public ResponseEntity<ApiResponse> sendOtp(@Valid @RequestBody SendOtpRequest request) {
-        String otp = otpService.generateAndSendOtp(request.getPhoneNumber(), request.getPurpose());
+        otpService.generateAndSendOtp(request.getPhoneNumber(), request.getPurpose());
 
         ApiResponse response = new ApiResponse(
                 true,
@@ -38,7 +41,7 @@ public class AuthController {
     // verify OTP sent to user's phone number
     @PostMapping("/verify-otp")
     public ResponseEntity<ApiResponse> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
-        boolean isValid = otpService.verifyOtp(
+        otpService.verifyOtp(
                 request.getPhoneNumber(),
                 request.getOtp(),
                 request.getPurpose()

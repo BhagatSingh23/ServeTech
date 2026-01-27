@@ -57,6 +57,15 @@
         </dependency>
 
 
+        <!--- Dependency for twilio for messaging of otp -->
+        <dependency>
+            <groupId>com.twilio.sdk</groupId>
+            <artifactId>twilio</artifactId>
+            <version>9.14.1</version>
+        </dependency>
+
+
+
         <!--- dependency for validation using JPA -->
         <dependency>
             <groupId>jakarta.validation</groupId>
@@ -100,7 +109,11 @@
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<plugins>

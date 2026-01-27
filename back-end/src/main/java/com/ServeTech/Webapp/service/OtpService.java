@@ -3,7 +3,7 @@ package com.ServeTech.Webapp.service;
 import com.ServeTech.Webapp.entity.OtpVerification;
 import com.ServeTech.Webapp.exception.CustomException;
 import com.ServeTech.Webapp.repository.OtpVerificationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ServeTech.Webapp.sms.SmsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,20 +11,23 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-
-// OtpService class to handle OTP verification and generation
 @Service
 public class OtpService {
 
-    @Autowired
-    private OtpVerificationRepository otpRepository;
+    private final OtpVerificationRepository otpRepository;
+
+    private final SmsService smsService;
+
+    public OtpService(OtpVerificationRepository otpRepository, SmsService smsService) {
+        this.otpRepository = otpRepository;
+        this.smsService = smsService;
+    }
 
     private static final SecureRandom random = new SecureRandom();
 
-    // Generate and send OTP to user's phone number
-    // We still need to integrate SMS gateway to send OTP to user's phone number
+    // Generate and send otp via sms
     @Transactional
-    public String generateAndSendOtp(String phoneNumber, String purpose) {
+    public void generateAndSendOtp(String phoneNumber, String purpose) {
         // Generate 6-digit OTP
         String otp = String.format("%06d", random.nextInt(1000000));
 
@@ -32,14 +35,19 @@ public class OtpService {
         OtpVerification otpVerification = new OtpVerification(phoneNumber, otp, purpose);
         otpRepository.save(otpVerification);
 
-        // TODO: Integrate SMS gateway to send OTP
-        // Example: smsGateway.sendSms(phoneNumber, "Your OTP is: " + otp);
+        // Send OTP via SMS
+        boolean smsSent = smsService.sendOtpSms(phoneNumber, otp);
+
+        if (!smsSent) {
+            System.err.println("Failed to send SMS to " + phoneNumber);
+            // Still return OTP for testing even if SMS fails
+        }
+
         System.out.println("OTP for " + phoneNumber + ": " + otp); // For testing
 
-        return otp; // Remove this in production
     }
 
-    // Verify OTP and mark it as used
+    // Verify the otp
     @Transactional
     public boolean verifyOtp(String phoneNumber, String otp, String purpose) {
         Optional<OtpVerification> otpOptional = otpRepository
@@ -52,7 +60,7 @@ public class OtpService {
         OtpVerification otpVerification = otpOptional.get();
 
         if (otpVerification.isExpired()) {
-            throw new CustomException("OTP has expired");
+            throw new CustomException("OTP has expired. Please request a new OTP");
         }
 
         if (otpVerification.getIsVerified()) {
@@ -68,7 +76,7 @@ public class OtpService {
         throw new CustomException("Invalid OTP");
     }
 
-    // Clean up expired OTPs
+    // Remove the expired OTPs from the db
     @Transactional
     public void cleanupExpiredOtps() {
         otpRepository.deleteByExpiryTimeBefore(LocalDateTime.now());

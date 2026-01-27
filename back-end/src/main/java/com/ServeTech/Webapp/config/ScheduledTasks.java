@@ -1,7 +1,6 @@
 package com.ServeTech.Webapp.config;
 
 import com.ServeTech.Webapp.service.OtpService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -9,8 +8,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class ScheduledTasks {
 
-    @Autowired
-    private OtpService otpService;
+    private final OtpService otpService;
+
+    public ScheduledTasks(OtpService otpService) {
+        this.otpService = otpService;
+    }
 
     // Clean up expired OTPs every day at midnight
     @Scheduled(cron = "0 0 * * * *")

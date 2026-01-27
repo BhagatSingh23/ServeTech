@@ -1,12 +1,11 @@
 package com.ServeTech.Webapp.config;
 
+import com.ServeTech.Webapp.entity.PincodeLocation;
 import com.ServeTech.Webapp.entity.Role;
 import com.ServeTech.Webapp.entity.Skill;
-import com.ServeTech.Webapp.entity.PincodeLocation;
+import com.ServeTech.Webapp.repository.PincodeLocationRepository;
 import com.ServeTech.Webapp.repository.RoleRepository;
 import com.ServeTech.Webapp.repository.SkillRepository;
-import com.ServeTech.Webapp.repository.PincodeLocationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -14,17 +13,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    @Autowired
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
-    @Autowired
-    private SkillRepository skillRepository;
+    private final SkillRepository skillRepository;
 
-    @Autowired
-    private PincodeLocationRepository pincodeLocationRepository;
+    private final PincodeLocationRepository pincodeLocationRepository;
+
+    // Constructor injection for the repositories
+    public DataInitializer(RoleRepository roleRepository, SkillRepository skillRepository,
+                           PincodeLocationRepository pincodeLocationRepository) {
+        this.roleRepository = roleRepository;
+        this.skillRepository = skillRepository;
+        this.pincodeLocationRepository = pincodeLocationRepository;
+    }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         initializeRoles();
         initializeSkills();
         initializeSamplePincodes();
