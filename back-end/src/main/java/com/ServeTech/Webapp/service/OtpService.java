@@ -27,7 +27,7 @@ public class OtpService {
 
     // Generate and send otp via sms
     @Transactional
-    public void generateAndSendOtp(String phoneNumber, String purpose) {
+    public String generateAndSendOtp(String phoneNumber, String purpose) {
         // Generate 6-digit OTP
         String otp = String.format("%06d", random.nextInt(1000000));
 
@@ -45,6 +45,7 @@ public class OtpService {
 
         System.out.println("OTP for " + phoneNumber + ": " + otp); // For testing
 
+        return otp;
     }
 
     // Verify the otp

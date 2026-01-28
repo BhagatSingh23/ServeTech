@@ -64,6 +64,12 @@
             <version>9.14.1</version>
         </dependency>
 
+        <!--- dependency for swagger to get endpoints remove when in production -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.7.0</version>
+        </dependency>
 
 
         <!--- dependency for validation using JPA -->
