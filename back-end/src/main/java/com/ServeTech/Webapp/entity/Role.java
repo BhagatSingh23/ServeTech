@@ -1,5 +1,6 @@
 package com.ServeTech.Webapp.entity;
 
+import com.ServeTech.Webapp.entity.enums.RoleType;
 import jakarta.persistence.*;
 
 // Stores user roles
@@ -13,18 +14,13 @@ public class Role {
 
     // Role name: ROLE_ADMIN, ROLE_CLIENT, ROLE_WORKER
     @Column(unique = true, nullable = false, length = 20)
-    private String name;
-
-    @Column(length = 200)
-    private String description;
+    private Enum<RoleType> name;
 
     // Constructors
-    public Role() {
-    }
+    public Role() {}
 
-    public Role(String name, String description) {
+    public Role(Enum<RoleType> name) {
         this.name = name;
-        this.description = description;
     }
 
     // Getters and Setters
@@ -36,20 +32,12 @@ public class Role {
         this.id = id;
     }
 
-    public String getName() {
+    public Enum<RoleType> getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(Enum<RoleType> name) {
         this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     @Override
@@ -57,7 +45,6 @@ public class Role {
         return "Role{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
                 '}';
     }
 }

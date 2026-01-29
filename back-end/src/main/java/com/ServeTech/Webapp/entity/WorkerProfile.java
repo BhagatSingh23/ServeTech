@@ -30,7 +30,7 @@ public class WorkerProfile {
             joinColumns = @JoinColumn(name = "worker_id"),
             inverseJoinColumns = @JoinColumn(name = "skill_id")
     )
-    private Set<Skill> skills = new HashSet<>();
+    private Set<Skill> skills;
 
     // ---------- Professional Information ----------
     @Column(length = 1000)

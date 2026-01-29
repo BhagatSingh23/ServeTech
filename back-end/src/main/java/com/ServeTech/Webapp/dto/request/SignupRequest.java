@@ -1,6 +1,6 @@
 package com.ServeTech.Webapp.dto.request;
 
-import com.ServeTech.Webapp.entity.enums.Gender;
+import com.ServeTech.Webapp.entity.enums.GenderType;
 import com.ServeTech.Webapp.entity.enums.RoleType;
 import jakarta.validation.constraints.*;
 
@@ -31,7 +31,7 @@ public class SignupRequest {
     private LocalDate dateOfBirth;
 
     @NotNull(message = "Gender is required")
-    private Enum<Gender> gender;
+    private Enum<GenderType> gender;
 
     @NotBlank(message = "Pincode is required")
     @Pattern(regexp = "^[1-9]\\d{5}$", message = "Invalid pincode")
@@ -93,12 +93,12 @@ public class SignupRequest {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public Gender getGender() {
-        return (Gender) gender;
+    public GenderType getGender() {
+        return (GenderType) gender;
     }
 
-    public void setGender(Gender gender) {
-        this.gender = gender;
+    public void setGender(GenderType genderType) {
+        this.gender = genderType;
     }
 
     public String getPincode() {

@@ -1,7 +1,8 @@
 package com.ServeTech.Webapp.entity;
 
 import com.ServeTech.Webapp.entity.enums.AccountStatus;
-import com.ServeTech.Webapp.entity.enums.Gender;
+import com.ServeTech.Webapp.entity.enums.GenderType;
+import com.ServeTech.Webapp.entity.enums.RoleType;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -49,14 +50,11 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private Gender gender;
+    private GenderType genderType;
 
     // ---------- Contact & Location ----------
     @Column(nullable = false, length = 10, name = "phone_number", unique = true)
     private String phoneNumber;
-
-    @Column(length = 100)
-    private String email;
 
     @Column(nullable = false, length = 6)
     private String pincode;
@@ -87,7 +85,7 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private Set<Role> roles = new HashSet<>();
+    private Set<Role> roles;
 
     // ---------- Profile ----------
     @Column(length = 500, name = "profile_image_url")
@@ -127,7 +125,6 @@ public class User {
         this.phoneNumber = phoneNumber;
         this.password = password;
         this.roles = new HashSet<>();
-        this.accountStatus = AccountStatus.PENDING_VERIFICATION;
     }
 
     // Getters and Setters
@@ -179,12 +176,12 @@ public class User {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public Gender getGender() {
-        return gender;
+    public GenderType getGender() {
+        return genderType;
     }
 
-    public void setGender(Gender gender) {
-        this.gender = gender;
+    public void setGender(GenderType genderType) {
+        this.genderType = genderType;
     }
 
     public String getPhoneNumber() {
@@ -193,14 +190,6 @@ public class User {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getPincode() {
@@ -296,24 +285,24 @@ public class User {
     }
 
     // Check if user has a specific role
-    public boolean hasRole(String roleName) {
+    public boolean hasRole(Enum<RoleType> roleName) {
         return roles.stream()
                 .anyMatch(role -> role.getName().equals(roleName));
     }
 
     // Check if the user is active worker (not deleted)
     public boolean isWorker() {
-        return hasRole("ROLE_WORKER");
+        return hasRole(RoleType.ROLE_WORKER);
     }
 
     // Check if user is a client
     public boolean isClient() {
-        return hasRole("ROLE_CLIENT");
+        return hasRole(RoleType.ROLE_CLIENT);
     }
 
     // Check if user is an admin
     public boolean isAdmin() {
-        return hasRole("ROLE_ADMIN");
+        return hasRole(RoleType.ROLE_ADMIN);
     }
 
     // Method to get full name of user

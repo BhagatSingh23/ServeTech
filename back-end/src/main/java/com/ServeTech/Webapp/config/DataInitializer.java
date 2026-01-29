@@ -3,6 +3,8 @@ package com.ServeTech.Webapp.config;
 import com.ServeTech.Webapp.entity.PincodeLocation;
 import com.ServeTech.Webapp.entity.Role;
 import com.ServeTech.Webapp.entity.Skill;
+import com.ServeTech.Webapp.entity.enums.RoleType;
+import com.ServeTech.Webapp.entity.enums.SkillType;
 import com.ServeTech.Webapp.repository.PincodeLocationRepository;
 import com.ServeTech.Webapp.repository.RoleRepository;
 import com.ServeTech.Webapp.repository.SkillRepository;
@@ -37,9 +39,9 @@ public class DataInitializer implements CommandLineRunner {
     // Methods to initialize the user roles
     private void initializeRoles() {
         if (roleRepository.count() == 0) {
-            Role adminRole = new Role("ROLE_ADMIN", "System Administrator with full access");
-            Role clientRole = new Role("ROLE_CLIENT", "Client/Contractor who posts work requests");
-            Role workerRole = new Role("ROLE_WORKER", "Skilled/Unskilled worker who applies for work");
+            Role adminRole = new Role(RoleType.ROLE_ADMIN);
+            Role clientRole = new Role(RoleType.ROLE_CLIENT);
+            Role workerRole = new Role(RoleType.ROLE_WORKER);
 
             roleRepository.save(adminRole);
             roleRepository.save(clientRole);
@@ -59,10 +61,10 @@ public class DataInitializer implements CommandLineRunner {
     private void initializeSkills() {
         if (skillRepository.count() == 0) {
             // Create skills
-            Skill labour = new Skill("LABOUR", "General labour work - lifting, carrying, assisting");
-            Skill painter = new Skill("PAINTER", "Painting and coating work - interior and exterior");
-            Skill mason = new Skill("MASON", "Masonry and bricklaying work");
-            Skill carpenter = new Skill("CARPENTER", "Carpentry and woodwork");
+            Skill labour = new Skill(SkillType.LABOUR);
+            Skill painter = new Skill(SkillType.PAINTER);
+            Skill mason = new Skill(SkillType.MASON);
+            Skill carpenter = new Skill(SkillType.CARPENTER);
 
             skillRepository.save(labour);
             skillRepository.save(painter);

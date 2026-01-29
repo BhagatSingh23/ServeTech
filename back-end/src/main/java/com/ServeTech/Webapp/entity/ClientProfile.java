@@ -22,8 +22,6 @@ public class ClientProfile {
     @Column(length = 200, name = "company_name")
     private String companyName;
 
-    @Column(length = 1000)
-    private String bio;
 
     // ---------- Statistics (for Dashboard) ----------
     @Column(name = "total_work_requests_posted", nullable = false)
@@ -112,14 +110,6 @@ public class ClientProfile {
 
     public void setCompanyName(String companyName) {
         this.companyName = companyName;
-    }
-
-    public String getBio() {
-        return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
     }
 
     public Integer getTotalWorkRequestsPosted() {
