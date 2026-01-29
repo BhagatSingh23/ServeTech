@@ -1,7 +1,105 @@
 import { useState } from "react";
 
 function AuthPage() {
-  const [mode, setMode] = useState("login"); 
+  const [mode, setMode] = useState("login");
+  const [showOtp, setShowOtp] = useState(false); 
+  const [Password,setPassword] = useState();
+  const [ConfirmPassword,setConfirmPassword] = useState();
+
+  // for login 
+  const [Username,setUsername] = useState("");
+  const [LoginPassword, setLoginPassword] = useState();
+
+
+  const handleSignupSubmit = async (e) => {
+    e.preventDefault();
+  
+    if (!showOtp) {
+     
+      setShowOtp(true);
+      
+      // here only the api call to send otp will be made
+
+    } else {
+
+      const formElement = e.target;
+  
+      // Collect all input fields automatically
+      const formData = new FormData(formElement);
+      const payload = Object.fromEntries(formData.entries()); // object to send in api as string
+  
+      // Ensure both passwords match 
+      if (Password !== ConfirmPassword) {
+        alert("Passwords do not match!");
+        return;   // if they do not, return from here only
+      }
+
+  
+      try {
+        //  API Call
+        const response = await fetch('http://localhost:8080/api/auth/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload), // Stringifying the object 'payload' to be sent
+        });
+  
+        const result = await response.json();
+  
+        if (response.ok) {
+          console.log("Signup Successful:", result);
+          alert("Account created successfully!");
+        } else {
+          alert(`Error: ${result.message || 'Signup failed'}`);
+        }
+      } catch (error) {
+        // NETWORK ERROR: connection issues
+        console.error("Network Error:", error);
+        alert("Could not connect to the server.");
+      }
+    }
+  };
+
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+  
+    if (!Username || !LoginPassword) {   // should not be empty fields
+      alert("Please enter both username and password");
+      return;
+    }
+  
+    const data = {
+      username: Username,
+      password: LoginPassword,
+    };
+  
+    try {
+      // Send request to backend
+      const response = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+  
+      const result = await response.json();
+  
+      if (response.ok) {
+        console.log("Login successful:", result);
+  
+  
+        alert("Login successful!");
+      } else {
+        alert(result.message || "Invalid credentials");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Unable to connect to server");
+    }
+  };
+  
 
   return (
     <div className="min-h-full w-full bg-[#0d1117] flex items-center justify-center px-4 text-black">
@@ -15,7 +113,10 @@ function AuthPage() {
                 ? "bg-red-600 text-white"
                 : "bg-gray-100 text-gray-700"
             }`}
-            onClick={() => setMode("login")}
+            onClick={() => {
+              setMode("login");
+              setShowOtp(false); 
+            }}
           >
             Log In
           </button>
@@ -26,7 +127,10 @@ function AuthPage() {
                 ? "bg-red-600 text-white"
                 : "bg-gray-100 text-gray-700"
             }`}
-            onClick={() => setMode("signup")}
+            onClick={() => {
+              setMode("signup");
+              setShowOtp(false); 
+            }}
           >
             Sign Up
           </button>
@@ -43,9 +147,11 @@ function AuthPage() {
               <label className="text-[0.75em] md:text-sm font-medium mb-1">Username</label>
               <input
                 type="text"
+                value={Username}
                 className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter username or Phone Number"
                 required
+                onChange={(e)=>{setUsername(e.target.value)}}
               />
             </div>
 
@@ -53,9 +159,11 @@ function AuthPage() {
               <label className="text-[0.75em] md:text-sm font-medium mb-1">Password</label>
               <input
                 type="password"
+                value={LoginPassword}
                 className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter password"
                 required
+                onChange={(e)=>{setLoginPassword(e.target.value)}}
               />
             </div>
 
@@ -70,7 +178,7 @@ function AuthPage() {
 
         {/* Sign Up Form */}
         {mode === "signup" && (
-          <form className="flex flex-col gap-4">
+          <form className="flex flex-col gap-4" onSubmit={handleSignupSubmit}>
             <h2 className="text-[0.85em] md:text-2xl font-bold text-center mb-2">
               Create Account
             </h2>
@@ -81,6 +189,7 @@ function AuthPage() {
                 <label className="text-[0.75em] md:text-sm font-medium mb-1">First Name</label>
                 <input
                   type="text"
+                  name="Firstname"
                   className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="First name"
                   required
@@ -91,6 +200,7 @@ function AuthPage() {
                 <label className="text-[0.75em] md:text-sm font-medium mb-1">Last Name</label>
                 <input
                   type="text"
+                  name="Lastname"
                   className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Last name"
                   required
@@ -103,6 +213,7 @@ function AuthPage() {
               <label className="text-[0.75em] md:text-sm font-medium mb-1">Date of Birth</label>
               <input
                 type="date"
+                name="Dob"
                 className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
@@ -112,6 +223,7 @@ function AuthPage() {
             <div className="flex flex-col">
               <label className="text-[0.75em] md:text-sm font-medium mb-1">Gender</label>
               <select
+               name="Gender"
                 className="border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 defaultValue=""
                 required
@@ -130,6 +242,7 @@ function AuthPage() {
               <label className="text-[0.75em] md:text-sm font-medium mb-1">City</label>
               <input
                 type="text"
+                name="City"
                 className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter city"
                 required
@@ -141,6 +254,7 @@ function AuthPage() {
               <label className="text-[0.75em] md:text-sm font-medium mb-1">Mobile Number</label>
               <input
                 type="tel"
+                name="Mobile"
                 pattern="[0-9]{10}"
                 className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="10-digit number"
@@ -152,10 +266,13 @@ function AuthPage() {
             <div className="flex flex-col">
               <label className="text-[0.75em] md:text-sm font-medium mb-1">Password</label>
               <input
+                value={Password}
                 type="password"
+                name="Password"
                 className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Create password"
                 required
+                onChange={(e)=>{setPassword(e.target.value)}}
               />
             </div>
 
@@ -164,28 +281,34 @@ function AuthPage() {
               <label className="text-[0.75em] md:text-sm font-medium mb-1">Confirm Password</label>
               <input
                 type="password"
+                value={ConfirmPassword}
+                name="ConfirmPasswird"
                 className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Re-enter password to confirm"
                 required
+                onChange={(e)=>{setConfirmPassword(e.target.value)}}
               />
             </div>
 
-            {/* Enter OTP */}
-            <div className="flex flex-col">
-              <label className="text-[0.75em] md:text-sm font-medium mb-1">Enter OTP</label>
-              <input
-                type="number"
-                className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter OTP sent to your number"
-                required
-              />
-            </div>
+            
+            {showOtp && (
+              <div className="OtpBox flex flex-col">
+                <label className="text-[0.75em] md:text-sm font-medium mb-1">Enter OTP</label>
+                <input
+                  type="number"
+                  name="Otp"
+                  className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter OTP sent to your number"
+                  required
+                />
+              </div>
+            )}
 
             <button
               type="submit"
               className="mt-4 bg-red-600 text-white py-2 rounded-md hover:bg-red-700  hover:font-bold transition"
             >
-              Sign Up
+              {showOtp ? "Verify & Sign Up" : "Sign Up"}
             </button>
           </form>
         )}
