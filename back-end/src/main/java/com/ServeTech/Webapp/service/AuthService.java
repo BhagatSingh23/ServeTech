@@ -93,7 +93,7 @@ public class AuthService {
                 .orElseThrow(() -> new CustomException("Invalid pincode"));
 
         // 4. Get role
-        Role role = roleRepository.findByName(request.getRole())
+        Role role = roleRepository.findByName(String.valueOf(request.getRole()))
                 .orElseThrow(() -> new CustomException("Role not found"));
 
         // 5. Generate unique user ID

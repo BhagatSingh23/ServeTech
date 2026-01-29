@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,11 +19,14 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Authentication", description = "Authentication APIs for signup, login, OTP verification, and password reset")
 public class AuthController {
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
 
-    @Autowired
-    private OtpService otpService;
+    private final OtpService otpService;
+
+    public AuthController(AuthService authService, OtpService otpService) {
+        this.authService = authService;
+        this.otpService = otpService;
+    }
 
     @PostMapping("/send-otp")
     @Operation(

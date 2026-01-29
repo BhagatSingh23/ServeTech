@@ -1,7 +1,9 @@
 package com.ServeTech.Webapp.dto.request;
 
 import com.ServeTech.Webapp.entity.enums.Gender;
+import com.ServeTech.Webapp.entity.enums.RoleType;
 import jakarta.validation.constraints.*;
+
 import java.time.LocalDate;
 
 
@@ -29,7 +31,7 @@ public class SignupRequest {
     private LocalDate dateOfBirth;
 
     @NotNull(message = "Gender is required")
-    private Gender gender;
+    private Enum<Gender> gender;
 
     @NotBlank(message = "Pincode is required")
     @Pattern(regexp = "^[1-9]\\d{5}$", message = "Invalid pincode")
@@ -40,7 +42,7 @@ public class SignupRequest {
 
     @NotBlank(message = "Role is required")
     @Pattern(regexp = "^(ROLE_WORKER|ROLE_CLIENT)$", message = "Role must be ROLE_WORKER or ROLE_CLIENT")
-    private String role; // ROLE_WORKER or ROLE_CLIENT
+    private Enum<RoleType> role; // ROLE_WORKER or ROLE_CLIENT
 
     @NotBlank(message = "OTP is required")
     @Size(min = 6, max = 6, message = "OTP must be 6 digits")
@@ -92,7 +94,7 @@ public class SignupRequest {
     }
 
     public Gender getGender() {
-        return gender;
+        return (Gender) gender;
     }
 
     public void setGender(Gender gender) {
@@ -115,11 +117,11 @@ public class SignupRequest {
         this.email = email;
     }
 
-    public String getRole() {
+    public @NotBlank(message = "Role is required") @Pattern(regexp = "^(ROLE_WORKER|ROLE_CLIENT)$", message = "Role must be ROLE_WORKER or ROLE_CLIENT") Enum<RoleType> getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(@NotBlank @Pattern(regexp = "") Enum<RoleType> role) {
         this.role = role;
     }
 
