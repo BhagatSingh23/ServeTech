@@ -13,14 +13,15 @@ public class Role {
     private Long id;
 
     // Role name: ROLE_ADMIN, ROLE_CLIENT, ROLE_WORKER
-    @Column(unique = true, nullable = false, length = 20)
-    private Enum<RoleType> name;
+    @Enumerated(EnumType.STRING)
+    @Column(unique = true, nullable = false, length = 50)
+    private RoleType name;
 
     // Constructors
     public Role() {
     }
 
-    public Role(Enum<RoleType> name) {
+    public Role(RoleType name) {
         this.name = name;
     }
 
@@ -37,7 +38,7 @@ public class Role {
         return name;
     }
 
-    public void setName(Enum<RoleType> name) {
+    public void setName(RoleType name) {
         this.name = name;
     }
 

@@ -13,7 +13,7 @@ public class Skill {
     private Long id;
 
     @Column(unique = true, nullable = false, length = 50)
-    private Enum<SkillType> name;
+    private SkillType name;
 
     // Flag to enable/disable skills
     @Column(nullable = false)
@@ -23,7 +23,7 @@ public class Skill {
     public Skill() {
     }
 
-    public Skill(Enum<SkillType> name) {
+    public Skill(SkillType name) {
         this.name = name;
     }
 
@@ -36,11 +36,11 @@ public class Skill {
         this.id = id;
     }
 
-    public Enum<SkillType> getName() {
+    public SkillType getName() {
         return name;
     }
 
-    public void setName(Enum<SkillType> name) {
+    public void setName(SkillType name) {
         this.name = name;
     }
 

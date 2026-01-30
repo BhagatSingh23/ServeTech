@@ -65,7 +65,7 @@ public class DataInitializer implements CommandLineRunner {
             skillRepository.save(carpenter);
 
             System.out.println("✓ Skills initialized successfully");
-            System.out.println("  - 10 skills created (LABOUR, PAINTER, MASON, etc.)");
+            System.out.println("  - skills created (LABOUR, PAINTER, MASON, CARPENTER.)");
         } else {
             System.out.println("✓ Skills already exist in database");
         }
