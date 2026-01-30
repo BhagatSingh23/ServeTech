@@ -37,9 +37,6 @@ public class SignupRequest {
     @Pattern(regexp = "^[1-9]\\d{5}$", message = "Invalid pincode")
     private String pincode;
 
-    @Email(message = "Invalid email format")
-    private String email;
-
     @NotBlank(message = "Role is required")
     @Pattern(regexp = "^(ROLE_WORKER|ROLE_CLIENT)$", message = "Role must be ROLE_WORKER or ROLE_CLIENT")
     private Enum<RoleType> role; // ROLE_WORKER or ROLE_CLIENT
@@ -107,14 +104,6 @@ public class SignupRequest {
 
     public void setPincode(String pincode) {
         this.pincode = pincode;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public @NotBlank(message = "Role is required") @Pattern(regexp = "^(ROLE_WORKER|ROLE_CLIENT)$", message = "Role must be ROLE_WORKER or ROLE_CLIENT") Enum<RoleType> getRole() {

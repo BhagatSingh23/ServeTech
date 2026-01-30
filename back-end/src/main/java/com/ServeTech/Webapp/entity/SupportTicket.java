@@ -1,6 +1,7 @@
 package com.ServeTech.Webapp.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 // This bd table will hold the tickets filed by clients
@@ -58,17 +59,6 @@ public class SupportTicket {
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
     // Constructors
     public SupportTicket() {
         this.status = "OPEN";
@@ -79,6 +69,17 @@ public class SupportTicket {
         this.user = user;
         this.subject = subject;
         this.description = description;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
     // Getters and Setters

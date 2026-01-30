@@ -2,6 +2,7 @@ package com.ServeTech.Webapp.entity;
 
 import com.ServeTech.Webapp.entity.enums.ApplicationStatus;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 // Work Application entity - Tracks applications for work
@@ -54,11 +55,6 @@ public class WorkApplication {
     @Column(name = "review_notes", length = 500)
     private String reviewNotes;
 
-    @PrePersist
-    protected void onCreate() {
-        appliedAt = LocalDateTime.now();
-    }
-
     // Constructors
     public WorkApplication() {
         this.status = ApplicationStatus.PENDING;
@@ -68,6 +64,11 @@ public class WorkApplication {
         this();
         this.workRequest = workRequest;
         this.worker = worker;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        appliedAt = LocalDateTime.now();
     }
 
     // Getters and Setters

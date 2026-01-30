@@ -17,7 +17,8 @@ public class Role {
     private Enum<RoleType> name;
 
     // Constructors
-    public Role() {}
+    public Role() {
+    }
 
     public Role(Enum<RoleType> name) {
         this.name = name;

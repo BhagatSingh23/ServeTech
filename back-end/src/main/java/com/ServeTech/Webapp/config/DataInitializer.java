@@ -1,11 +1,9 @@
 package com.ServeTech.Webapp.config;
 
-import com.ServeTech.Webapp.entity.PincodeLocation;
 import com.ServeTech.Webapp.entity.Role;
 import com.ServeTech.Webapp.entity.Skill;
 import com.ServeTech.Webapp.entity.enums.RoleType;
 import com.ServeTech.Webapp.entity.enums.SkillType;
-import com.ServeTech.Webapp.repository.PincodeLocationRepository;
 import com.ServeTech.Webapp.repository.RoleRepository;
 import com.ServeTech.Webapp.repository.SkillRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -19,21 +17,16 @@ public class DataInitializer implements CommandLineRunner {
 
     private final SkillRepository skillRepository;
 
-    private final PincodeLocationRepository pincodeLocationRepository;
-
     // Constructor injection for the repositories
-    public DataInitializer(RoleRepository roleRepository, SkillRepository skillRepository,
-                           PincodeLocationRepository pincodeLocationRepository) {
+    public DataInitializer(RoleRepository roleRepository, SkillRepository skillRepository) {
         this.roleRepository = roleRepository;
         this.skillRepository = skillRepository;
-        this.pincodeLocationRepository = pincodeLocationRepository;
     }
 
     @Override
     public void run(String... args) {
         initializeRoles();
         initializeSkills();
-        initializeSamplePincodes();
     }
 
     // Methods to initialize the user roles
@@ -75,57 +68,6 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("  - 10 skills created (LABOUR, PAINTER, MASON, etc.)");
         } else {
             System.out.println("✓ Skills already exist in database");
-        }
-    }
-
-    // Some sample pincode for testing purposes
-    private void initializeSamplePincodes() {
-        if (pincodeLocationRepository.count() == 0) {
-            // Mumbai & Navi Mumbai
-            pincodeLocationRepository.save(new PincodeLocation("400001", "Mumbai", "Maharashtra", "Mumbai City"));
-            pincodeLocationRepository.save(new PincodeLocation("400051", "Mumbai", "Maharashtra", "Mumbai Suburban"));
-            pincodeLocationRepository.save(new PincodeLocation("400708", "Navi Mumbai", "Maharashtra", "Thane"));
-            pincodeLocationRepository.save(new PincodeLocation("400614", "Thane", "Maharashtra", "Thane"));
-
-            // Delhi NCR
-            pincodeLocationRepository.save(new PincodeLocation("110001", "New Delhi", "Delhi", "Central Delhi"));
-            pincodeLocationRepository.save(new PincodeLocation("110016", "New Delhi", "Delhi", "South Delhi"));
-            pincodeLocationRepository.save(new PincodeLocation("201301", "Noida", "Uttar Pradesh", "Gautam Buddha Nagar"));
-            pincodeLocationRepository.save(new PincodeLocation("122001", "Gurgaon", "Haryana", "Gurgaon"));
-
-            // Bangalore
-            pincodeLocationRepository.save(new PincodeLocation("560001", "Bangalore", "Karnataka", "Bangalore Urban"));
-            pincodeLocationRepository.save(new PincodeLocation("560066", "Bangalore", "Karnataka", "Bangalore Urban"));
-
-            // Pune
-            pincodeLocationRepository.save(new PincodeLocation("411001", "Pune", "Maharashtra", "Pune"));
-            pincodeLocationRepository.save(new PincodeLocation("411014", "Pune", "Maharashtra", "Pune"));
-
-            // Hyderabad
-            pincodeLocationRepository.save(new PincodeLocation("500001", "Hyderabad", "Telangana", "Hyderabad"));
-            pincodeLocationRepository.save(new PincodeLocation("500081", "Hyderabad", "Telangana", "Hyderabad"));
-
-            // Chennai
-            pincodeLocationRepository.save(new PincodeLocation("600001", "Chennai", "Tamil Nadu", "Chennai"));
-            pincodeLocationRepository.save(new PincodeLocation("600028", "Chennai", "Tamil Nadu", "Chennai"));
-
-            // Kolkata
-            pincodeLocationRepository.save(new PincodeLocation("700001", "Kolkata", "West Bengal", "Kolkata"));
-            pincodeLocationRepository.save(new PincodeLocation("700091", "Kolkata", "West Bengal", "Kolkata"));
-
-            // Ahmedabad
-            pincodeLocationRepository.save(new PincodeLocation("380001", "Ahmedabad", "Gujarat", "Ahmedabad"));
-            pincodeLocationRepository.save(new PincodeLocation("380015", "Ahmedabad", "Gujarat", "Ahmedabad"));
-
-            // Jaipur
-            pincodeLocationRepository.save(new PincodeLocation("302001", "Jaipur", "Rajasthan", "Jaipur"));
-            pincodeLocationRepository.save(new PincodeLocation("302017", "Jaipur", "Rajasthan", "Jaipur"));
-
-            System.out.println("✓ Sample pincodes initialized successfully");
-            System.out.println("  - 20 pincodes added for major cities");
-            System.out.println("  - Cities: Mumbai, Delhi, Bangalore, Pune, Hyderabad, Chennai, Kolkata, Ahmedabad, Jaipur");
-        } else {
-            System.out.println("✓ Pincodes already exist in database");
         }
     }
 }

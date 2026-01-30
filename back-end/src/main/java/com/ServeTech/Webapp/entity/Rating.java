@@ -1,6 +1,7 @@
 package com.ServeTech.Webapp.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 // Seperate rating table for workers and clients
@@ -49,11 +50,6 @@ public class Rating {
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
-
     // Constructors
     public Rating() {
     }
@@ -63,6 +59,11 @@ public class Rating {
         this.rater = rater;
         this.ratee = ratee;
         this.rating = rating;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 
     // Getters and Setters

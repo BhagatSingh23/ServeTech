@@ -4,6 +4,7 @@ import com.ServeTech.Webapp.entity.enums.AccountStatus;
 import com.ServeTech.Webapp.entity.enums.GenderType;
 import com.ServeTech.Webapp.entity.enums.RoleType;
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -59,10 +60,15 @@ public class User {
     @Column(nullable = false, length = 6)
     private String pincode;
 
-    // Many users can belong to one location
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "location_id", nullable = false)
-    private PincodeLocation location;
+    // To get closer location of user
+    @Column(nullable = false, length = 100)
+    private String block;
+
+    @Column(nullable = false, length = 100)
+    private String district;
+
+    @Column(nullable = false, length = 100)
+    private String state;
 
     // ---------- Authentication & Security ----------
     // Store BCrypt hashed password, never plain text
@@ -101,19 +107,6 @@ public class User {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
-    // Automatically set timestamps before saving
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    // Automatically update timestamp before updating
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
     // Constructors
     public User() {
         this.roles = new HashSet<>();
@@ -125,6 +118,19 @@ public class User {
         this.phoneNumber = phoneNumber;
         this.password = password;
         this.roles = new HashSet<>();
+    }
+
+    // Automatically set timestamps before saving
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    // Automatically update timestamp before updating
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
     // Getters and Setters
@@ -200,12 +206,29 @@ public class User {
         this.pincode = pincode;
     }
 
-    public PincodeLocation getLocation() {
-        return location;
+
+    public String getBlock() {
+        return block;
     }
 
-    public void setLocation(PincodeLocation location) {
-        this.location = location;
+    public String getDistrict() {
+        return district;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setBlock(String block) {
+        this.block = block;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 
     public String getPassword() {
@@ -311,6 +334,7 @@ public class User {
     }
 
     // Custom toString method
+
     @Override
     public String toString() {
         return "User{" +
@@ -319,8 +343,13 @@ public class User {
                 ", username='" + username + '\'' +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
+                ", dateOfBirth=" + dateOfBirth +
+                ", genderType=" + genderType +
                 ", phoneNumber='" + phoneNumber + '\'' +
-                ", accountStatus=" + accountStatus +
+                ", pincode='" + pincode + '\'' +
+                ", block='" + block + '\'' +
+                ", district='" + district + '\'' +
+                ", state='" + state + '\'' +
                 '}';
     }
 }

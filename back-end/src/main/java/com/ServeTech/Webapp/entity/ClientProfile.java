@@ -1,6 +1,7 @@
 package com.ServeTech.Webapp.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 // This db table stores client-specific information
@@ -58,18 +59,6 @@ public class ClientProfile {
     @Column(nullable = false, name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
-
     // Constructors
     public ClientProfile() {
         this.totalWorkRequestsPosted = 0;
@@ -85,6 +74,17 @@ public class ClientProfile {
     public ClientProfile(User user) {
         this();
         this.user = user;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
     // Getters and Setters

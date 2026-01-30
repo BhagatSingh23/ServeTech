@@ -7,6 +7,7 @@ import com.ServeTech.Webapp.dto.response.AuthResponse;
 import com.ServeTech.Webapp.dto.response.UserResponse;
 import com.ServeTech.Webapp.entity.*;
 import com.ServeTech.Webapp.entity.enums.AccountStatus;
+import com.ServeTech.Webapp.entity.enums.RoleType;
 import com.ServeTech.Webapp.exception.CustomException;
 import com.ServeTech.Webapp.repository.*;
 import com.ServeTech.Webapp.security.JwtTokenProvider;
@@ -28,9 +29,6 @@ public class AuthService {
     private final RoleRepository roleRepository;
 
 
-    private final PincodeLocationRepository pincodeLocationRepository;
-
-
     private final WorkerProfileRepository workerProfileRepository;
 
 
@@ -43,6 +41,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
 
+    private PincodeService pincodeService;
+
+
     private final JwtTokenProvider jwtTokenProvider;
 
 
@@ -52,17 +53,18 @@ public class AuthService {
     private final UsernameGenerator usernameGenerator;
 
     public AuthService(UserRepository userRepository, RoleRepository roleRepository,
-                       PincodeLocationRepository pincodeLocationRepository, WorkerProfileRepository workerProfileRepository,
+                       WorkerProfileRepository workerProfileRepository,
                        ClientProfileRepository clientProfileRepository, OtpService otpService,
-                       PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider,
+                       PasswordEncoder passwordEncoder, PincodeService pincodeService
+            , JwtTokenProvider jwtTokenProvider,
                        UniqueIdGenerator uniqueIdGenerator, UsernameGenerator usernameGenerator) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        this.pincodeLocationRepository = pincodeLocationRepository;
         this.workerProfileRepository = workerProfileRepository;
         this.clientProfileRepository = clientProfileRepository;
         this.otpService = otpService;
         this.passwordEncoder = passwordEncoder;
+        this.pincodeService = pincodeService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.uniqueIdGenerator = uniqueIdGenerator;
         this.usernameGenerator = usernameGenerator;
@@ -87,10 +89,10 @@ public class AuthService {
             throw new CustomException("Phone number already registered");
         }
 
-        // 3. Validate and get pincode location
-        PincodeLocation location = pincodeLocationRepository
-                .findByPincode(request.getPincode())
-                .orElseThrow(() -> new CustomException("Invalid pincode"));
+//        // 3. Validate and get pincode location
+//        PincodeLocation location = pincodeLocationRepository
+//                .findByPincode(request.getPincode())
+//                .orElseThrow(() -> new CustomException("Invalid pincode"));
 
         // 4. Get role
         Role role = roleRepository.findByName(String.valueOf(request.getRole()))
@@ -114,6 +116,9 @@ public class AuthService {
             suffix++;
         }
 
+        // Fetch the location from the pincode
+        Location location = pincodeService.fetchLocation(request.getPincode());
+
         // 8. Create user
         User user = new User();
         user.setUniqueUserId(uniqueUserId);
@@ -125,8 +130,9 @@ public class AuthService {
         user.setDateOfBirth(request.getDateOfBirth());
         user.setGender(request.getGender());
         user.setPincode(request.getPincode());
-        user.setLocation(location);
-        user.setEmail(request.getEmail());
+        user.setBlock(location.getBlock());
+        user.setDistrict(location.getDistrict());
+        user.setState(location.getState());
         user.setPhoneVerified(true); // OTP verified
         user.setAccountStatus(AccountStatus.ACTIVE);
         user.addRole(role);
@@ -135,10 +141,10 @@ public class AuthService {
         user = userRepository.save(user);
 
         // 10. Create profile based on role
-        if ("ROLE_WORKER".equals(request.getRole())) {
+        if (RoleType.ROLE_WORKER.equals(request.getRole())) {
             WorkerProfile workerProfile = new WorkerProfile(user);
             workerProfileRepository.save(workerProfile);
-        } else if ("ROLE_CLIENT".equals(request.getRole())) {
+        } else if (RoleType.ROLE_CLIENT.equals(request.getRole())) {
             ClientProfile clientProfile = new ClientProfile(user);
             clientProfileRepository.save(clientProfile);
         }

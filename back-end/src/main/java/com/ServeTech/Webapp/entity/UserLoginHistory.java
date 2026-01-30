@@ -1,6 +1,7 @@
 package com.ServeTech.Webapp.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 // This db table stores user login history of the user
@@ -37,11 +38,6 @@ public class UserLoginHistory {
     @Column(length = 20, name = "login_status")
     private String loginStatus; // SUCCESS, FAILED
 
-    @PrePersist
-    protected void onCreate() {
-        loginTime = LocalDateTime.now();
-    }
-
     // Constructors
     public UserLoginHistory() {
     }
@@ -49,6 +45,11 @@ public class UserLoginHistory {
     public UserLoginHistory(User user, String loginStatus) {
         this.user = user;
         this.loginStatus = loginStatus;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        loginTime = LocalDateTime.now();
     }
 
     // Getters and Setters

@@ -25,7 +25,8 @@ public class UserResponse {
     private LocalDate dateOfBirth;
     private GenderType genderType;
     private String pincode;
-    private String city;
+    private String block;
+    private String district;
     private String state;
     private AccountStatus accountStatus;
     private boolean phoneVerified;
@@ -47,9 +48,10 @@ public class UserResponse {
         this.dateOfBirth = user.getDateOfBirth();
         this.genderType = user.getGender();
         this.pincode = user.getPincode();
-        if (user.getLocation() != null) {
-            this.city = user.getLocation().getCity();
-            this.state = user.getLocation().getState();
+        if (user.getBlock() != null && user.getDistrict() != null && user.getState() != null) {
+            this.block = user.getBlock();
+            this.district = user.getDistrict();
+            this.state = user.getState();
         }
         this.accountStatus = user.getAccountStatus();
         this.phoneVerified = user.isPhoneVerified();
@@ -132,12 +134,20 @@ public class UserResponse {
         this.pincode = pincode;
     }
 
-    public String getCity() {
-        return city;
+    public String getBlock() {
+        return block;
     }
 
-    public void setCity(String city) {
-        this.city = city;
+    public void setBlock(String block) {
+        this.block = block;
+    }
+
+    public String getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
     }
 
     public String getState() {
