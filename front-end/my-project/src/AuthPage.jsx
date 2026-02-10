@@ -14,48 +14,61 @@ function AuthPage() {
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
   
+    const formElement = e.target;
+    const formData = new FormData(formElement);
+    const payload = Object.fromEntries(formData.entries());
+  
     if (!showOtp) {
-     
-      setShowOtp(true);
-      
-      // here only the api call to send otp will be made
 
-    } else {
-
-      const formElement = e.target;
-  
-      // Collect all input fields automatically
-      const formData = new FormData(formElement);
-      const payload = Object.fromEntries(formData.entries()); // object to send in api as string
-  
-      // Ensure both passwords match 
-      if (Password !== ConfirmPassword) {
-        alert("Passwords do not match!");
-        return;   // if they do not, return from here only
+      if (!payload.email) {
+        alert("Please enter your email first.");
+        return;
       }
-
   
       try {
-        //  API Call
+        //  API Call to send OTP
+        const otpResponse = await fetch('http://localhost:8080/api/auth/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: payload.email }), 
+        });
+  
+        const otpResult = await otpResponse.json();
+  
+        if (otpResponse.ok) {
+          setShowOtp(true); 
+          alert("OTP sent to your email!");
+        } else {
+          alert(`Failed to send OTP: ${otpResult.message}`);
+        }
+      } catch (error) {
+        console.error("OTP Error:", error);
+        alert("Could not send OTP. Check your connection.");
+      }
+  
+    } else {
+      
+      if (payload.password !== payload.confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+      }
+  
+      try {
         const response = await fetch('http://localhost:8080/api/auth/signup', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload), // Stringifying the object 'payload' to be sent
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload), 
         });
   
         const result = await response.json();
   
         if (response.ok) {
-          console.log("Signup Successful:", result);
           alert("Account created successfully!");
         } else {
           alert(`Error: ${result.message || 'Signup failed'}`);
         }
       } catch (error) {
-        // NETWORK ERROR: connection issues
-        console.error("Network Error:", error);
+        console.error("Signup Error:", error);
         alert("Could not connect to the server.");
       }
     }
@@ -149,7 +162,7 @@ function AuthPage() {
                 type="text"
                 value={Username}
                 className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter username or Phone Number"
+                placeholder="Enter username or Mobile Number"
                 required
                 onChange={(e)=>{setUsername(e.target.value)}}
               />
@@ -237,17 +250,27 @@ function AuthPage() {
               </select>
             </div>
 
-            {/* City */}
+            {/* Pincode */}
             <div className="flex flex-col">
-              <label className="text-[0.75em] md:text-sm font-medium mb-1">City</label>
-              <input
-                type="text"
-                name="City"
-                className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter city"
-                required
-              />
+                <label className="text-[0.75em] md:text-sm font-medium mb-1">Pincode</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  name="Pincode"
+                  maxLength={6}
+                  minLength={6}
+                  pattern="\d{6}"
+                  className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter 6-digit pincode"
+                  onChange={(e) => {
+                    if (!/[0-9]/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  required
+                />
             </div>
+
 
             {/* Mobile Number */}
             <div className="flex flex-col">
