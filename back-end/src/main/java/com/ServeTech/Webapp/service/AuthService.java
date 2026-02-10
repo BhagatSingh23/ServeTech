@@ -150,7 +150,7 @@ public class AuthService {
         }
 
         // 11. Generate JWT token
-        String token = jwtTokenProvider.generateToken(user.getUsername());
+        String token = jwtTokenProvider.generateToken(user);
 
         // 12. Return response
         return new AuthResponse(token, new UserResponse(user));
@@ -177,7 +177,7 @@ public class AuthService {
         userRepository.save(user);
 
         // Generate token
-        String token = jwtTokenProvider.generateToken(user.getUsername());
+        String token = jwtTokenProvider.generateToken(user);
 
         return new AuthResponse(token, new UserResponse(user));
     }
