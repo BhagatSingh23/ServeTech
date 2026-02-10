@@ -20,17 +20,14 @@ function AuthPage() {
   
     if (!showOtp) {
 
-      if (!payload.email) {
-        alert("Please enter your email first.");
-        return;
-      }
+  
   
       try {
         //  API Call to send OTP
         const otpResponse = await fetch('http://localhost:8080/api/auth/send-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: payload.email }), 
+          body: JSON.stringify({ email: payload.name }), 
         });
   
         const otpResult = await otpResponse.json();
