@@ -27,7 +27,8 @@ function AuthPage() {
         const otpResponse = await fetch('http://localhost:8080/api/auth/send-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: payload.name }), 
+          body: JSON.stringify({ phoneNumber: payload.phoneNumber ,
+                                        purpose: "REGISTRATION"}),
         });
   
         const otpResult = await otpResponse.json();
@@ -45,7 +46,7 @@ function AuthPage() {
   
     } else {
       
-      if (payload.password !== payload.confirmPassword) {
+      if (payload.password !== payload.ConfirmPassword) {
         alert("Passwords do not match!");
         return;
       }
@@ -199,7 +200,7 @@ function AuthPage() {
                 <label className="text-[0.75em] md:text-sm font-medium mb-1">First Name</label>
                 <input
                   type="text"
-                  name="Firstname"
+                  name="firstName"
                   className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="First name"
                   required
@@ -210,7 +211,7 @@ function AuthPage() {
                 <label className="text-[0.75em] md:text-sm font-medium mb-1">Last Name</label>
                 <input
                   type="text"
-                  name="Lastname"
+                  name="lastName"
                   className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Last name"
                   required
@@ -223,7 +224,7 @@ function AuthPage() {
               <label className="text-[0.75em] md:text-sm font-medium mb-1">Date of Birth</label>
               <input
                 type="date"
-                name="Dob"
+                name="dob"
                 className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
@@ -233,7 +234,7 @@ function AuthPage() {
             <div className="flex flex-col">
               <label className="text-[0.75em] md:text-sm font-medium mb-1">Gender</label>
               <select
-               name="Gender"
+               name="gender"
                 className="border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 defaultValue=""
                 required
@@ -241,9 +242,9 @@ function AuthPage() {
                 <option value="" disabled>
                   Select gender
                 </option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+                <option value="OTHER">Other</option>
               </select>
             </div>
 
@@ -253,7 +254,7 @@ function AuthPage() {
                 <input
                   type="text"
                   inputMode="numeric"
-                  name="Pincode"
+                  name="pincode"
                   maxLength={6}
                   minLength={6}
                   pattern="\d{6}"
@@ -274,7 +275,7 @@ function AuthPage() {
               <label className="text-[0.75em] md:text-sm font-medium mb-1">Mobile Number</label>
               <input
                 type="tel"
-                name="Mobile"
+                name="phoneNumber"
                 pattern="[0-9]{10}"
                 className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="10-digit number"
@@ -288,7 +289,7 @@ function AuthPage() {
               <input
                 value={Password}
                 type="password"
-                name="Password"
+                name="password"
                 className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Create password"
                 required
@@ -302,7 +303,7 @@ function AuthPage() {
               <input
                 type="password"
                 value={ConfirmPassword}
-                name="ConfirmPasswird"
+                name="ConfirmPassword"
                 className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Re-enter password to confirm"
                 required
@@ -316,7 +317,7 @@ function AuthPage() {
                 <label className="text-[0.75em] md:text-sm font-medium mb-1">Enter OTP</label>
                 <input
                   type="number"
-                  name="Otp"
+                  name="otp"
                   className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter OTP sent to your number"
                   required
