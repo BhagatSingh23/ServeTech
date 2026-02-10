@@ -1,6 +1,10 @@
 package com.ServeTech.Webapp.security;
 
-import io.jsonwebtoken.*;
+import com.ServeTech.Webapp.entity.User;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -22,14 +26,14 @@ public class JwtTokenProvider {
     private long jwtExpirationMs;
 
     // Generate JWT token
-    public String generateToken(String username) {
+    public String generateToken(User user) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
 
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(user.getPhoneNumber())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS512)
@@ -37,7 +41,7 @@ public class JwtTokenProvider {
     }
 
     // Get username from token
-    public String getUsernameFromToken(String token) {
+    public String getPhoneNumberFromToken(String token) {
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
 
         Claims claims = Jwts.parserBuilder()
