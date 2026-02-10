@@ -1,6 +1,7 @@
 package com.ServeTech.Webapp.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -76,17 +77,6 @@ public class DailyWorkLog {
     @Column(nullable = false, name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
     // Constructors
     public DailyWorkLog() {
         this.isPresent = false;
@@ -99,6 +89,17 @@ public class DailyWorkLog {
         this();
         this.assignment = assignment;
         this.workDate = workDate;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
     // Getters and Setters

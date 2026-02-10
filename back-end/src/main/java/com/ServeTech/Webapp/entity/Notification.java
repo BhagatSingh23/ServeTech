@@ -2,6 +2,7 @@ package com.ServeTech.Webapp.entity;
 
 import com.ServeTech.Webapp.entity.enums.NotificationType;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 // This db table stores notifications for users
@@ -53,11 +54,6 @@ public class Notification {
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
-
     // Constructors
     public Notification() {
         this.isRead = false;
@@ -69,6 +65,11 @@ public class Notification {
         this.type = type;
         this.title = title;
         this.message = message;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 
     // Getters and Setters

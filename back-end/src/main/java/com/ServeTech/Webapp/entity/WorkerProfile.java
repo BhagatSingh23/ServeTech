@@ -1,6 +1,7 @@
 package com.ServeTech.Webapp.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,7 +31,7 @@ public class WorkerProfile {
             joinColumns = @JoinColumn(name = "worker_id"),
             inverseJoinColumns = @JoinColumn(name = "skill_id")
     )
-    private Set<Skill> skills = new HashSet<>();
+    private Set<Skill> skills;
 
     // ---------- Professional Information ----------
     @Column(length = 1000)
@@ -83,17 +84,6 @@ public class WorkerProfile {
     @Column(nullable = false, name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
     // Constructors
     public WorkerProfile() {
         this.skills = new HashSet<>();
@@ -110,6 +100,17 @@ public class WorkerProfile {
     public WorkerProfile(User user) {
         this();
         this.user = user;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
     // Getters and Setters
@@ -251,7 +252,7 @@ public class WorkerProfile {
 
     // Helper Methods
 
-   // Add a skill to worker's skillset
+    // Add a skill to worker's skillset
     public void addSkill(Skill skill) {
         this.skills.add(skill);
     }

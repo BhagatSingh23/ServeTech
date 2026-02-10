@@ -122,19 +122,6 @@ public class Complaint {
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        filedAt = LocalDateTime.now();
-        updatedAt = filedAt;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
-    // ---------- Constructors ----------
-
     public Complaint() {
         this.status = ComplaintStatus.SUBMITTED;
         this.priority = ComplaintPriority.MEDIUM;
@@ -148,6 +135,19 @@ public class Complaint {
         this.complaintType = complaintType;
         this.subject = subject;
         this.description = description;
+    }
+
+    // ---------- Constructors ----------
+
+    @PrePersist
+    protected void onCreate() {
+        filedAt = LocalDateTime.now();
+        updatedAt = filedAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
     // ---------- Getters and Setters ----------

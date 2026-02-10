@@ -2,6 +2,7 @@ package com.ServeTech.Webapp.entity;
 
 import com.ServeTech.Webapp.entity.enums.WorkRequestStatus;
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -53,9 +54,6 @@ public class WorkRequest {
     @Column(nullable = false, length = 6)
     private String pincode;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "location_id", nullable = false)
-    private PincodeLocation location;
 
     @Column(length = 500, name = "work_address")
     private String workAddress;
@@ -97,17 +95,6 @@ public class WorkRequest {
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
     // Constructors
     public WorkRequest() {
         this.requiredSkills = new HashSet<>();
@@ -121,6 +108,17 @@ public class WorkRequest {
         this.client = client;
         this.title = title;
         this.description = description;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
     // Getters and Setters
@@ -178,14 +176,6 @@ public class WorkRequest {
 
     public void setPincode(String pincode) {
         this.pincode = pincode;
-    }
-
-    public PincodeLocation getLocation() {
-        return location;
-    }
-
-    public void setLocation(PincodeLocation location) {
-        this.location = location;
     }
 
     public String getWorkAddress() {

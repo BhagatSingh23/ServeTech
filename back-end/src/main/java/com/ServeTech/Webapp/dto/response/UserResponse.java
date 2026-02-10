@@ -3,7 +3,9 @@ package com.ServeTech.Webapp.dto.response;
 import com.ServeTech.Webapp.entity.Role;
 import com.ServeTech.Webapp.entity.User;
 import com.ServeTech.Webapp.entity.enums.AccountStatus;
-import com.ServeTech.Webapp.entity.enums.Gender;
+import com.ServeTech.Webapp.entity.enums.GenderType;
+import com.ServeTech.Webapp.entity.enums.RoleType;
+
 import java.time.LocalDate;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,15 +22,15 @@ public class UserResponse {
     private String firstName;
     private String lastName;
     private String phoneNumber;
-    private String email;
     private LocalDate dateOfBirth;
-    private Gender gender;
+    private GenderType genderType;
     private String pincode;
-    private String city;
+    private String block;
+    private String district;
     private String state;
     private AccountStatus accountStatus;
     private boolean phoneVerified;
-    private Set<String> roles;
+    private Set<Enum<RoleType>> roles;
     private String profileImageUrl;
 
     // Constructors
@@ -43,13 +45,13 @@ public class UserResponse {
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.phoneNumber = user.getPhoneNumber();
-        this.email = user.getEmail();
         this.dateOfBirth = user.getDateOfBirth();
-        this.gender = user.getGender();
+        this.genderType = user.getGender();
         this.pincode = user.getPincode();
-        if (user.getLocation() != null) {
-            this.city = user.getLocation().getCity();
-            this.state = user.getLocation().getState();
+        if (user.getBlock() != null && user.getDistrict() != null && user.getState() != null) {
+            this.block = user.getBlock();
+            this.district = user.getDistrict();
+            this.state = user.getState();
         }
         this.accountStatus = user.getAccountStatus();
         this.phoneVerified = user.isPhoneVerified();
@@ -108,14 +110,6 @@ public class UserResponse {
         this.phoneNumber = phoneNumber;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public LocalDate getDateOfBirth() {
         return dateOfBirth;
     }
@@ -124,12 +118,12 @@ public class UserResponse {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public Gender getGender() {
-        return gender;
+    public GenderType getGender() {
+        return genderType;
     }
 
-    public void setGender(Gender gender) {
-        this.gender = gender;
+    public void setGender(GenderType genderType) {
+        this.genderType = genderType;
     }
 
     public String getPincode() {
@@ -140,12 +134,20 @@ public class UserResponse {
         this.pincode = pincode;
     }
 
-    public String getCity() {
-        return city;
+    public String getBlock() {
+        return block;
     }
 
-    public void setCity(String city) {
-        this.city = city;
+    public void setBlock(String block) {
+        this.block = block;
+    }
+
+    public String getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
     }
 
     public String getState() {
@@ -172,11 +174,11 @@ public class UserResponse {
         this.phoneVerified = phoneVerified;
     }
 
-    public Set<String> getRoles() {
+    public Set<Enum<RoleType>> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<String> roles) {
+    public void setRoles(Set<Enum<RoleType>> roles) {
         this.roles = roles;
     }
 

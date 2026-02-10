@@ -1,5 +1,6 @@
 package com.ServeTech.Webapp.entity;
 
+import com.ServeTech.Webapp.entity.enums.SkillType;
 import jakarta.persistence.*;
 
 // Skill entity - Stores skills of the workers
@@ -12,10 +13,7 @@ public class Skill {
     private Long id;
 
     @Column(unique = true, nullable = false, length = 50)
-    private String name;
-
-    @Column(length = 200)
-    private String description;
+    private SkillType name;
 
     // Flag to enable/disable skills
     @Column(nullable = false)
@@ -25,10 +23,8 @@ public class Skill {
     public Skill() {
     }
 
-    public Skill(String name, String description) {
+    public Skill(SkillType name) {
         this.name = name;
-        this.description = description;
-        this.active = true;
     }
 
     // Getters and Setters
@@ -40,20 +36,12 @@ public class Skill {
         this.id = id;
     }
 
-    public String getName() {
+    public SkillType getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(SkillType name) {
         this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public boolean isActive() {
@@ -69,7 +57,6 @@ public class Skill {
         return "Skill{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
                 ", active=" + active +
                 '}';
     }

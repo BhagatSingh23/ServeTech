@@ -1,6 +1,7 @@
 package com.ServeTech.Webapp.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 // This db table stores client-specific information
@@ -22,8 +23,6 @@ public class ClientProfile {
     @Column(length = 200, name = "company_name")
     private String companyName;
 
-    @Column(length = 1000)
-    private String bio;
 
     // ---------- Statistics (for Dashboard) ----------
     @Column(name = "total_work_requests_posted", nullable = false)
@@ -60,18 +59,6 @@ public class ClientProfile {
     @Column(nullable = false, name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
-
     // Constructors
     public ClientProfile() {
         this.totalWorkRequestsPosted = 0;
@@ -87,6 +74,17 @@ public class ClientProfile {
     public ClientProfile(User user) {
         this();
         this.user = user;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
     // Getters and Setters
@@ -112,14 +110,6 @@ public class ClientProfile {
 
     public void setCompanyName(String companyName) {
         this.companyName = companyName;
-    }
-
-    public String getBio() {
-        return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
     }
 
     public Integer getTotalWorkRequestsPosted() {

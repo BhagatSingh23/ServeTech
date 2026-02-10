@@ -1,6 +1,7 @@
 package com.ServeTech.Webapp.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 // OTP Verification entity - Stores OTPs for users to verify their accounts
@@ -41,13 +42,6 @@ public class OtpVerification {
     @Column(nullable = false, updatable = false, name = "created_at")
     private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        // OTP valid for 10 minutes
-        expiryTime = createdAt.plusMinutes(10);
-    }
-
     // Constructors
     public OtpVerification() {
         this.isVerified = false;
@@ -58,6 +52,13 @@ public class OtpVerification {
         this.phoneNumber = phoneNumber;
         this.otp = otp;
         this.purpose = purpose;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        // OTP valid for 10 minutes
+        expiryTime = createdAt.plusMinutes(10);
     }
 
     // Getters and Setters

@@ -1,8 +1,9 @@
 package com.ServeTech.Webapp.entity;
 
-import com.ServeTech.Webapp.entity.enums.WorkProgressStatus;
 import com.ServeTech.Webapp.entity.enums.PaymentStatus;
+import com.ServeTech.Webapp.entity.enums.WorkProgressStatus;
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -108,19 +109,6 @@ public class WorkAssignment {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-        amountPending = totalAmount - amountPaid;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-        amountPending = totalAmount - amountPaid;
-    }
-
     // Constructors
     public WorkAssignment() {
         this.progressStatus = WorkProgressStatus.NOT_STARTED;
@@ -138,6 +126,19 @@ public class WorkAssignment {
         this.worker = worker;
         this.client = client;
         this.agreedWagePerDay = agreedWagePerDay;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+        amountPending = totalAmount - amountPaid;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+        amountPending = totalAmount - amountPaid;
     }
 
     // Getters and Setters

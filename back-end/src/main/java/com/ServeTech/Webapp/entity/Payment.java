@@ -2,6 +2,7 @@ package com.ServeTech.Webapp.entity;
 
 import com.ServeTech.Webapp.entity.enums.PaymentStatus;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 // This db table stores payments made by clients to workers
@@ -63,11 +64,6 @@ public class Payment {
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
-
     // Constructors
     public Payment() {
         this.paymentStatus = PaymentStatus.PENDING;
@@ -79,6 +75,11 @@ public class Payment {
         this.payer = payer;
         this.payee = payee;
         this.amount = amount;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 
     // Getters and Setters
