@@ -1,13 +1,11 @@
 package com.ServeTech.Webapp.dto.request;
 
 import com.ServeTech.Webapp.entity.enums.GenderType;
-import com.ServeTech.Webapp.entity.enums.RoleType;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
-
-// This class will assist in storing data related to signup
 public class SignupRequest {
 
     @NotBlank(message = "First name is required")
@@ -26,99 +24,46 @@ public class SignupRequest {
     @Size(min = 6, max = 100, message = "Password must be at least 6 characters")
     private String password;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     @NotNull(message = "Date of birth is required")
     @Past(message = "Date of birth must be in the past")
     private LocalDate dateOfBirth;
 
     @NotNull(message = "Gender is required")
-    private Enum<GenderType> gender;
+    private GenderType gender;
 
     @NotBlank(message = "Pincode is required")
     @Pattern(regexp = "^[1-9]\\d{5}$", message = "Invalid pincode")
     private String pincode;
 
+    // Updated regex to include ROLE_ADMIN and match backend expectations
     @NotBlank(message = "Role is required")
-    @Pattern(regexp = "^(ROLE_WORKER|ROLE_CLIENT)$", message = "Role must be ROLE_WORKER or ROLE_CLIENT")
-    private Enum<RoleType> role; // ROLE_WORKER or ROLE_CLIENT
+    @Pattern(regexp = "^(ROLE_WORKER|ROLE_CLIENT|ROLE_ADMIN)$", message = "Role must be ROLE_WORKER, ROLE_CLIENT or ROLE_ADMIN")
+    private String role;
 
     @NotBlank(message = "OTP is required")
     @Size(min = 6, max = 6, message = "OTP must be 6 digits")
     private String otp;
 
-    // Constructors
     public SignupRequest() {
     }
 
-    // Getters and Setters
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public LocalDate getDateOfBirth() {
-        return dateOfBirth;
-    }
-
-    public void setDateOfBirth(LocalDate dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
-    }
-
-    public GenderType getGender() {
-        return (GenderType) gender;
-    }
-
-    public void setGender(GenderType genderType) {
-        this.gender = genderType;
-    }
-
-    public String getPincode() {
-        return pincode;
-    }
-
-    public void setPincode(String pincode) {
-        this.pincode = pincode;
-    }
-
-    public @NotBlank(message = "Role is required") @Pattern(regexp = "^(ROLE_WORKER|ROLE_CLIENT)$", message = "Role must be ROLE_WORKER or ROLE_CLIENT") Enum<RoleType> getRole() {
-        return role;
-    }
-
-    public void setRole(@NotBlank @Pattern(regexp = "") Enum<RoleType> role) {
-        this.role = role;
-    }
-
-    public String getOtp() {
-        return otp;
-    }
-
-    public void setOtp(String otp) {
-        this.otp = otp;
-    }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    public LocalDate getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+    public GenderType getGender() { return gender; }
+    public void setGender(GenderType gender) { this.gender = gender; }
+    public String getPincode() { return pincode; }
+    public void setPincode(String pincode) { this.pincode = pincode; }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+    public String getOtp() { return otp; }
+    public void setOtp(String otp) { this.otp = otp; }
 }

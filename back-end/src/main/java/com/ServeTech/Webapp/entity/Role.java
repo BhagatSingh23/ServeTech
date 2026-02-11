@@ -3,7 +3,6 @@ package com.ServeTech.Webapp.entity;
 import com.ServeTech.Webapp.entity.enums.RoleType;
 import jakarta.persistence.*;
 
-// Stores user roles
 @Entity
 @Table(name = "roles")
 public class Role {
@@ -17,7 +16,6 @@ public class Role {
     @Column(unique = true, nullable = false, length = 50)
     private RoleType name;
 
-    // Constructors
     public Role() {
     }
 
@@ -25,7 +23,6 @@ public class Role {
         this.name = name;
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -34,7 +31,7 @@ public class Role {
         this.id = id;
     }
 
-    public Enum<RoleType> getName() {
+    public RoleType getName() {
         return name;
     }
 

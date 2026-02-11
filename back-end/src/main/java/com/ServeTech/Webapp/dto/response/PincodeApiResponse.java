@@ -1,6 +1,7 @@
 package com.ServeTech.Webapp.dto.response;
 
 import com.ServeTech.Webapp.entity.Location;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
@@ -8,7 +9,9 @@ public class PincodeApiResponse {
 
     private String Message;
     private String Status;
-    private List<Location> location;
+
+    @JsonProperty("PostOffice")
+    private List<Location> postOffice;
 
     public String getMessage() {
         return Message;
@@ -26,11 +29,11 @@ public class PincodeApiResponse {
         Status = status;
     }
 
-    public List<Location> getLocation() {
-        return location;
+    public List<Location> getPostOffice() {
+        return postOffice;
     }
 
-    public void setLocation(List<Location> location) {
-        this.location = location;
+    public void setPostOffice(List<Location> postOffice) {
+        this.postOffice = postOffice;
     }
 }

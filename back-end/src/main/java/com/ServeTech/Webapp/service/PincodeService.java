@@ -2,9 +2,11 @@ package com.ServeTech.Webapp.service;
 
 import com.ServeTech.Webapp.dto.response.PincodeApiResponse;
 import com.ServeTech.Webapp.entity.Location;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Collections;
 
 @Service
 public class PincodeService {
@@ -15,25 +17,32 @@ public class PincodeService {
 
         String url = "https://api.postalpincode.in/pincode/" + pincode;
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("User-Agent", "Mozilla/5.0");
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
         ResponseEntity<PincodeApiResponse[]> response =
-                restTemplate.getForEntity(url, PincodeApiResponse[].class);
+                restTemplate.exchange(
+                        url,
+                        HttpMethod.GET,
+                        entity,
+                        PincodeApiResponse[].class
+                );
 
         PincodeApiResponse[] body = response.getBody();
 
         if (body == null || body.length == 0) {
-            throw new RuntimeException("No Location found for the given Pincode from API");
+            throw new RuntimeException("No response from API");
         }
 
-        // First object
         PincodeApiResponse apiResponse = body[0];
 
-        if (!apiResponse.getStatus().equalsIgnoreCase("Success")) {
+        if (!"Success".equalsIgnoreCase(apiResponse.getStatus())) {
             throw new RuntimeException("Invalid Pincode");
         }
 
-        // First Location pops-up choose that
-        Location location = apiResponse.getLocation().getFirst();
-
-        return location;
+        return apiResponse.getPostOffice().get(0);
     }
 }

@@ -44,6 +44,7 @@ public class OtpService {
         }
 
         System.out.println("OTP for " + phoneNumber + ": " + otp); // For testing
+        System.out.println(otp);
 
         return otp;
     }
