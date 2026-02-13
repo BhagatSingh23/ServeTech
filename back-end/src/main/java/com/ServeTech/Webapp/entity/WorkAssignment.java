@@ -334,6 +334,14 @@ public class WorkAssignment {
         this.completedAt = completedAt;
     }
 
+    public Double getAmountPaid() {
+        return amountPaid;
+    }
+
+    public void setAmountPaid(Double amountPaid) {
+        this.amountPaid = amountPaid;
+    }
+
     // Helper Methods
 
     // Method to update progress of work assignment
@@ -435,4 +443,5 @@ public class WorkAssignment {
                 ", paymentStatus=" + paymentStatus +
                 '}';
     }
+
 }

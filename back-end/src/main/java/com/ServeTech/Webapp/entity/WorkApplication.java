@@ -171,7 +171,7 @@ public class WorkApplication {
         return this.status == ApplicationStatus.PENDING;
     }
 
-    // Custome toString method
+    // Custom toString method
     @Override
     public String toString() {
         return "WorkApplication{" +
