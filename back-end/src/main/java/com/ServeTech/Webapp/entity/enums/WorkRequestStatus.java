@@ -1,8 +1,9 @@
 package com.ServeTech.Webapp.entity.enums;
 
-// This is defines the schedule of the worker
+// This defines the status of a work request
 public enum WorkRequestStatus {
-    OPEN,           // Just posted
+    DRAFT,          // Saved but not published
+    OPEN,           // Just posted, accepting applications
     IN_PROGRESS,    // Worker assigned and working
     COMPLETED,      // Work finished
     CANCELLED,      // Cancelled by client

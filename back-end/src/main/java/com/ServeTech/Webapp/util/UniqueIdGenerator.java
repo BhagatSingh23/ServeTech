@@ -2,45 +2,45 @@ package com.ServeTech.Webapp.util;
 
 import org.springframework.stereotype.Component;
 import java.time.Year;
+import java.util.UUID;
 
 // This class is used to generate unique IDs for users, work requests, work assignments and transactions
 @Component
 public class UniqueIdGenerator {
 
-    private static long counter = 1;
-
-    // This method is synchronized to ensure thread-safe operation
-    // This will prevent multiple threads from generating the same unique ID at the same time
-    public synchronized String generateUniqueUserId() {
+    // UUID-based generation to prevent duplicate IDs after application restart
+    private String generateId(String prefix) {
         int currentYear = Year.now().getValue();
-        String formattedCounter = String.format("%06d", counter);
-        counter++;
-        return currentYear + formattedCounter;
+        String uuid = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 8).toUpperCase();
+        return prefix + currentYear + uuid;
     }
 
-    // Work request ID format: WR + YEAR + 6-digit number
-    public synchronized String generateWorkRequestId() {
-        int currentYear = Year.now().getValue();
-        String formattedCounter = String.format("%06d", counter);
-        counter++;
-        return "WR" + currentYear + formattedCounter;
+    public String generateUniqueUserId() {
+        return generateId("");
+    }
+
+    // Work request ID format: WR + YEAR + 8-char UUID
+    public String generateWorkRequestId() {
+        return generateId("WR");
     }
 
     // Generate work assignment ID
-    public synchronized String generateWorkAssignmentId() {
-        int currentYear = Year.now().getValue();
-        String formattedCounter = String.format("%06d", counter);
-        counter++;
-        return "WA" + currentYear + formattedCounter;
+    public String generateWorkAssignmentId() {
+        return generateId("WA");
     }
 
-    // Transaction ID format: TXN + YEAR + 6-digit number
-    // This will help us identify transactions in the database
-    // Keep track of the last generated transaction ID to ensure uniqueness
-    public synchronized String generateTransactionId() {
-        int currentYear = Year.now().getValue();
-        String formattedCounter = String.format("%06d", counter);
-        counter++;
-        return "TXN" + currentYear + formattedCounter;
+    // Transaction ID format: TXN + YEAR + 8-char UUID
+    public String generateTransactionId() {
+        return generateId("TXN");
+    }
+
+    // Complaint ID format: CMP + YEAR + 8-char UUID
+    public String generateComplaintId() {
+        return generateId("CMP");
+    }
+
+    // Ticket ID format: TKT + YEAR + 8-char UUID
+    public String generateTicketId() {
+        return generateId("TKT");
     }
 }

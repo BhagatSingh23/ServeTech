@@ -63,13 +63,12 @@ public class AuthService {
     // Register user
     @Transactional
     public AuthResponse signup(@Valid @RequestBody SignupRequest request) {
-        // 1. Verify OTP first
+        // Verify OTP (OTP is logged to console in dev mode since SMS is disabled)
         boolean otpValid = otpService.verifyOtp(
                 request.getPhoneNumber(),
                 request.getOtp(),
                 "REGISTRATION"
         );
-
         if (!otpValid) {
             throw new CustomException("Invalid or expired OTP");
         }
@@ -110,11 +109,20 @@ public class AuthService {
             suffix++;
         }
 
-        // 8. Fetch the location from the pincode
-        // Ensure PincodeService returns a valid Location object or throws exception
-        Location location = pincodeService.fetchLocation(request.getPincode());
+        // 8. Fetch the location from the pincode gracefully
+        Location location = null;
+        try {
+            location = pincodeService.fetchLocation(request.getPincode());
+        } catch (Exception e) {
+            // Ignore API failure, proceed with fallback
+            System.err.println("Pincode API failed: " + e.getMessage());
+        }
+
         if (location == null) {
-            throw new CustomException("Invalid Pincode provided");
+            location = new Location();
+            location.setBlock("Unknown Area");
+            location.setDistrict("Unknown District");
+            location.setState("Unknown State");
         }
 
         // 9. Create user
@@ -158,9 +166,9 @@ public class AuthService {
         return new AuthResponse(token, new UserResponse(user));
     }
 
-    // Login user
+    // Login Step 1: Validate credentials and send OTP
     @Transactional
-    public AuthResponse login(LoginRequest request) {
+    public void loginStep1(LoginRequest request) {
         // Find user by username or phone number
         User user = findUserByUsernameOrPhone(request.getUsernameOrPhone());
 
@@ -173,6 +181,23 @@ public class AuthService {
         if (user.getAccountStatus() != AccountStatus.ACTIVE) {
             throw new CustomException("Account is " + user.getAccountStatus().toString().toLowerCase());
         }
+
+        // Send OTP for login verification (logged to console in dev mode)
+        otpService.generateAndSendOtp(user.getPhoneNumber(), "LOGIN");
+    }
+
+    // Login Step 2: Verify OTP and return token
+    @Transactional
+    public AuthResponse loginStep2(String phoneNumber, String otp) {
+        // Verify OTP
+        boolean otpValid = otpService.verifyOtp(phoneNumber, otp, "LOGIN");
+        if (!otpValid) {
+            throw new CustomException("Invalid or expired OTP");
+        }
+
+        // Find user
+        User user = userRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(() -> new CustomException("User not found"));
 
         // Update last login
         user.setLastLogin(LocalDateTime.now());

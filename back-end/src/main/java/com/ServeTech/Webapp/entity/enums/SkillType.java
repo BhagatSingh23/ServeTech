@@ -3,8 +3,17 @@ package com.ServeTech.Webapp.entity.enums;
 // This will be used to tell skill types
 public enum SkillType {
 
-    MASON,
-    LABOUR,
+    PAINTER,
+    PLUMBER,
+    ELECTRICIAN,
     CARPENTER,
-    PAINTER
+    MASON,
+    WELDER,
+    DRIVER,
+    COOK,
+    GARDENER,
+    CLEANER,
+    HELPER,
+    LABOUR,
+    OTHER
 }

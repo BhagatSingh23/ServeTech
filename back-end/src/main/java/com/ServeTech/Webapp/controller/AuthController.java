@@ -5,6 +5,8 @@ import com.ServeTech.Webapp.dto.response.ApiResponse;
 import com.ServeTech.Webapp.dto.response.AuthResponse;
 import com.ServeTech.Webapp.service.AuthService;
 import com.ServeTech.Webapp.service.OtpService;
+import com.ServeTech.Webapp.service.PincodeService;
+import com.ServeTech.Webapp.entity.Location;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,17 +17,17 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000")
 @Tag(name = "Authentication", description = "Authentication APIs for signup, login, OTP verification, and password reset")
 public class AuthController {
 
     private final AuthService authService;
-
     private final OtpService otpService;
+    private final PincodeService pincodeService;
 
-    public AuthController(AuthService authService, OtpService otpService) {
+    public AuthController(AuthService authService, OtpService otpService, PincodeService pincodeService) {
         this.authService = authService;
         this.otpService = otpService;
+        this.pincodeService = pincodeService;
     }
 
     @PostMapping("/send-otp")
@@ -87,11 +89,30 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(
-            summary = "Login user",
-            description = "Authenticate user with username/phone and password. Returns JWT token on success."
+            summary = "Login Step 1 - Validate credentials",
+            description = "Validate username/phone and password, then send OTP to the user's phone. OTP is logged to console in dev mode."
     )
     public ResponseEntity<ApiResponse> login(@Valid @RequestBody LoginRequest request) {
-        AuthResponse authResponse = authService.login(request);
+        authService.loginStep1(request);
+
+        ApiResponse response = new ApiResponse(
+                true,
+                "Credentials verified. OTP sent to your phone number."
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/login-verify")
+    @Operation(
+            summary = "Login Step 2 - Verify OTP",
+            description = "Verify the OTP sent during login. Returns JWT token on success."
+    )
+    public ResponseEntity<ApiResponse> loginVerify(@RequestBody java.util.Map<String, String> body) {
+        String phoneNumber = body.get("phoneNumber");
+        String otp = body.get("otp");
+
+        AuthResponse authResponse = authService.loginStep2(phoneNumber, otp);
 
         ApiResponse response = new ApiResponse(
                 true,
@@ -133,5 +154,28 @@ public class AuthController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/pincode/{pincode}")
+    @Operation(
+            summary = "Get location by pincode",
+            description = "Fetches block, district, and state for a given Indian pincode"
+    )
+    public ResponseEntity<ApiResponse> getLocationByPincode(@PathVariable String pincode) {
+        try {
+            Location location = pincodeService.fetchLocation(pincode);
+            ApiResponse response = new ApiResponse(
+                    true,
+                    "Location fetched successfully",
+                    location
+            );
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ApiResponse response = new ApiResponse(
+                    false,
+                    "Invalid pincode or API error: " + e.getMessage()
+            );
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 }

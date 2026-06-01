@@ -4,6 +4,7 @@ import com.ServeTech.Webapp.dto.response.WorkerDashboardDTO;
 import com.ServeTech.Webapp.dto.response.WorkerDashboardSummaryDTO;
 import com.ServeTech.Webapp.entity.*;
 import com.ServeTech.Webapp.entity.enums.SkillType;
+import com.ServeTech.Webapp.repository.UserRepository;
 import com.ServeTech.Webapp.repository.WorkAssignmentRepository;
 import com.ServeTech.Webapp.repository.WorkerProfileRepository;
 import org.springframework.stereotype.Service;
@@ -19,21 +20,28 @@ public class WorkerDashboardService {
 
     // Constructor Injection
     private final WorkAssignmentRepository workAssignmentRepository;
-
     private final WorkerProfileRepository workerProfileRepository;
+    private final UserRepository userRepository;
 
-    public WorkerDashboardService(WorkAssignmentRepository workAssignmentRepository, WorkerProfileRepository workerProfileRepository) {
+    public WorkerDashboardService(WorkAssignmentRepository workAssignmentRepository,
+                                  WorkerProfileRepository workerProfileRepository,
+                                  UserRepository userRepository) {
         this.workAssignmentRepository = workAssignmentRepository;
         this.workerProfileRepository = workerProfileRepository;
+        this.userRepository = userRepository;
     }
 
     // Get worker dashboard summary data
     public WorkerDashboardSummaryDTO getWorkerDashboard(Long workerId) {
         WorkerDashboardSummaryDTO summary = new WorkerDashboardSummaryDTO();
 
-        // Get worker profile for stats
+        // Get or auto-create worker profile
         WorkerProfile workerProfile = workerProfileRepository.findByUserId(workerId)
-                .orElseThrow(() -> new RuntimeException("Worker profile not found"));
+                .orElseGet(() -> {
+                    User user = userRepository.findById(workerId)
+                            .orElseThrow(() -> new RuntimeException("User not found"));
+                    return workerProfileRepository.save(new WorkerProfile(user));
+                });
 
         // Set summary statistics from profile
         summary.setTotalEarnings(workerProfile.getTotalEarnings());

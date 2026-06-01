@@ -37,7 +37,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
@@ -51,6 +51,16 @@ public class SecurityConfig {
                                 "/swagger-ui.html" ,
                                 "/error"
                         ).permitAll()
+                        // Role-protected endpoints
+                        .requestMatchers("/api/worker/**").hasAuthority("ROLE_WORKER")
+                        .requestMatchers("/api/client/**").hasAuthority("ROLE_CLIENT")
+                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/jobs/**").hasAuthority("ROLE_WORKER")
+                        // Authenticated endpoints
+                        .requestMatchers("/api/applications/**").authenticated()
+                        .requestMatchers("/api/payments/**").authenticated()
+                        .requestMatchers("/api/ratings/**").authenticated()
+                        .requestMatchers("/api/test/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(
                 jwtAuthenticationFilter,
@@ -66,7 +76,7 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "http://localhost:5173"
         ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setAllowCredentials(true); // Vital if using Cookies or Auth headers
 
@@ -84,7 +94,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager() ;
     }
 

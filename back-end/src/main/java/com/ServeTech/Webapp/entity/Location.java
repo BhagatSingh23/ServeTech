@@ -1,9 +1,14 @@
 package com.ServeTech.Webapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Location {
 
+    @JsonProperty("block")
     private String Block;
+    @JsonProperty("district")
     private String District;
+    @JsonProperty("state")
     private String State;
 
     public String getBlock() {
