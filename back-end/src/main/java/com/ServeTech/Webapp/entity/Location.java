@@ -4,34 +4,39 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Location {
 
+    @com.fasterxml.jackson.annotation.JsonAlias("Block")
     @JsonProperty("block")
-    private String Block;
+    private String block;
+
+    @com.fasterxml.jackson.annotation.JsonAlias("District")
     @JsonProperty("district")
-    private String District;
+    private String district;
+
+    @com.fasterxml.jackson.annotation.JsonAlias("State")
     @JsonProperty("state")
-    private String State;
+    private String state;
 
     public String getBlock() {
-        return Block;
+        return block;
     }
 
     public void setBlock(String block) {
-        Block = block;
+        this.block = block;
     }
 
     public String getDistrict() {
-        return District;
+        return district;
     }
 
     public void setDistrict(String district) {
-        District = district;
+        this.district = district;
     }
 
     public String getState() {
-        return State;
+        return state;
     }
 
     public void setState(String state) {
-        State = state;
+        this.state = state;
     }
 }

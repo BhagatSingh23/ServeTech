@@ -66,7 +66,10 @@ public class OtpService {
         }
 
         if (otpVerification.getIsVerified()) {
-            throw new CustomException("OTP already used");
+            if (!otpVerification.getOtp().equals(otp)) {
+                throw new CustomException("Invalid OTP");
+            }
+            return true;
         }
 
         boolean isValid = otpVerification.verify(otp);
