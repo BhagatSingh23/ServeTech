@@ -3,6 +3,7 @@ package com.ServeTech.Webapp.service;
 import com.ServeTech.Webapp.dto.request.CreateWorkRequestDTO;
 import com.ServeTech.Webapp.dto.request.UpdateWorkRequestDTO;
 import com.ServeTech.Webapp.dto.response.ApplicationResponse;
+import com.ServeTech.Webapp.dto.response.ClientAssignmentDTO;
 import com.ServeTech.Webapp.dto.response.ClientDashboardResponse;
 import com.ServeTech.Webapp.dto.response.WorkRequestResponse;
 import com.ServeTech.Webapp.entity.Skill;
@@ -259,5 +260,31 @@ public class ClientService {
                 .stream()
                 .map(ApplicationResponse::fromEntity)
                 .collect(Collectors.toList());
+    }    public List<ClientAssignmentDTO> getClientAssignments(Long clientId) {
+        List<WorkAssignment> assignments = workAssignmentRepository.findAllByClientId(clientId);
+        return assignments.stream().map(a -> {
+            ClientAssignmentDTO dto = new ClientAssignmentDTO();
+            dto.setAssignmentId(a.getId());
+            
+            String workerName = "Worker";
+            if (a.getWorker() != null) {
+                workerName = a.getWorker().getFirstName();
+                if (a.getWorker().getLastName() != null) {
+                    workerName += " " + a.getWorker().getLastName();
+                }
+            }
+            dto.setWorkerName(workerName);
+            
+            if (a.getWorkRequest() != null) {
+                dto.setJobTitle(a.getWorkRequest().getTitle());
+            } else {
+                dto.setJobTitle("Job");
+            }
+            
+            dto.setPendingAmount(a.getAmountPending() != null ? a.getAmountPending() : 0.0);
+            dto.setTotalAmount(a.getTotalAmount() != null ? a.getTotalAmount() : 0.0);
+            
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

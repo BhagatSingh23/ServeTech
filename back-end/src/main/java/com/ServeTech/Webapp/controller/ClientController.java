@@ -88,4 +88,11 @@ public class ClientController {
                 userPrincipal.getId(), id);
         return ResponseEntity.ok(new ApiResponse(true, "Applications fetched", applications));
     }
+
+    @GetMapping("/assignments")
+    public ResponseEntity<ApiResponse> getClientAssignments(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        List<com.ServeTech.Webapp.dto.response.ClientAssignmentDTO> assignments = clientService.getClientAssignments(userPrincipal.getId());
+        return ResponseEntity.ok(new ApiResponse(true, "Assignments fetched", assignments));
+    }
 }
