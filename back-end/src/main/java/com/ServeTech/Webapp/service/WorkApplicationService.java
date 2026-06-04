@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,6 +64,27 @@ public class WorkApplicationService {
 
         User worker = userRepository.findById(workerId)
                 .orElseThrow(() -> new CustomException("Worker not found", HttpStatus.NOT_FOUND));
+
+        // Skill validation: worker must have at least one skill matching the job's required skills
+        if (workRequest.getRequiredSkills() != null && !workRequest.getRequiredSkills().isEmpty()) {
+            WorkerProfile profile = workerProfileRepository.findByUserId(workerId)
+                    .orElseThrow(() -> new CustomException("Worker profile not found. Please complete your profile first.", HttpStatus.NOT_FOUND));
+
+            Set<Long> workerSkillIds = profile.getSkills().stream()
+                    .map(s -> s.getId()).collect(Collectors.toSet());
+            Set<Long> requiredSkillIds = workRequest.getRequiredSkills().stream()
+                    .map(s -> s.getId()).collect(Collectors.toSet());
+
+            boolean hasMatchingSkill = workerSkillIds.stream().anyMatch(requiredSkillIds::contains);
+            if (!hasMatchingSkill) {
+                String required = workRequest.getRequiredSkills().stream()
+                        .map(s -> s.getName().name())
+                        .collect(Collectors.joining(", "));
+                throw new CustomException(
+                        "You don't have the required skills for this job. Required: " + required,
+                        HttpStatus.BAD_REQUEST);
+            }
+        }
 
         WorkApplication application = new WorkApplication();
         application.setWorker(worker);

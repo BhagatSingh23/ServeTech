@@ -51,10 +51,10 @@ const ViewApplicants = () => {
     try {
       const appId = application.applicationId || application.id;
       if (action === 'accept') {
-        await api.patch(`/client/applications/${appId}/accept`);
+        await api.patch(`/applications/${appId}/accept`);
         toast.success(`Application from ${application.workerName || 'worker'} accepted!`);
       } else {
-        await api.patch(`/client/applications/${appId}/reject`);
+        await api.patch(`/applications/${appId}/reject`);
         toast.success(`Application from ${application.workerName || 'worker'} rejected.`);
       }
       setConfirmModal({ open: false, application: null, action: '' });
@@ -120,11 +120,11 @@ const ViewApplicants = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
             <div>
               <p className="text-xs text-slate-500">Wage/Day</p>
-              <p className="text-amber-400 font-semibold">{formatCurrency(job.wagePerDay || job.dailyWage)}</p>
+              <p className="text-amber-400 font-semibold">{formatCurrency(job.offeredWagePerDay)}</p>
             </div>
             <div>
               <p className="text-xs text-slate-500">Workers Needed</p>
-              <p className="text-white">{job.workersNeeded || job.numberOfWorkers || 0}</p>
+              <p className="text-white">{job.workersNeeded || 0}</p>
             </div>
             <div>
               <p className="text-xs text-slate-500">Period</p>
@@ -170,9 +170,9 @@ const ViewApplicants = () => {
 
                     <div className="flex items-center gap-3 mt-1 flex-wrap">
                       {renderStars(app.workerRating || app.rating)}
-                      {(app.experienceYears || app.experience) && (
+                      {(app.workerExperience || app.experienceYears) && (
                         <span className="text-xs text-slate-400">
-                          {app.experienceYears || app.experience} yrs exp
+                          {app.workerExperience || app.experienceYears} yrs exp
                         </span>
                       )}
                     </div>
@@ -181,7 +181,7 @@ const ViewApplicants = () => {
                       <div>
                         <span className="text-slate-500">Proposed: </span>
                         <span className="text-amber-400 font-semibold">
-                          {formatCurrency(app.proposedWage || app.proposedDailyWage)}/day
+                          {formatCurrency(app.proposedWagePerDay)}/day
                         </span>
                       </div>
                     </div>
@@ -256,7 +256,7 @@ const ViewApplicants = () => {
             <p className="text-sm text-slate-400">
               The worker will be assigned to this job at their proposed wage of{' '}
               <span className="text-amber-400">
-                {formatCurrency(confirmModal.application?.proposedWage || confirmModal.application?.proposedDailyWage)}/day
+                {formatCurrency(confirmModal.application?.proposedWagePerDay)}/day
               </span>.
             </p>
           )}

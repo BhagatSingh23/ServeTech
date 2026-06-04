@@ -24,8 +24,12 @@ const ClientDashboard = () => {
     try {
       const response = await getClientDashboard();
       setDashboard(response.data.data);
-    } catch {
-      toast.error('Failed to load dashboard data');
+    } catch (error) {
+      if (error.response?.status === 403) {
+        toast.error('Access denied. Only clients can view this dashboard.');
+      } else {
+        toast.error('Failed to load dashboard data');
+      }
     } finally {
       setLoading(false);
     }
@@ -108,14 +112,14 @@ const ClientDashboard = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 mb-3">
-                  {(job.skills || job.skillsRequired || []).slice(0, 3).map((skill) => (
+                  {(job.requiredSkills || []).slice(0, 3).map((skill) => (
                     <span key={skill} className="bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded-md">
                       {skill}
                     </span>
                   ))}
-                  {(job.skills || job.skillsRequired || []).length > 3 && (
+                  {(job.requiredSkills || []).length > 3 && (
                     <span className="text-xs text-slate-500">
-                      +{(job.skills || job.skillsRequired || []).length - 3} more
+                      +{(job.requiredSkills || []).length - 3} more
                     </span>
                   )}
                 </div>
@@ -124,12 +128,12 @@ const ClientDashboard = () => {
                   <div>
                     <span className="text-slate-500">Workers: </span>
                     <span className="text-white">
-                      {job.workersAssigned || 0}/{job.workersNeeded || job.numberOfWorkers || 0}
+                      {job.workersAssigned || 0}/{job.workersNeeded || 0}
                     </span>
                   </div>
                   <div>
                     <span className="text-slate-500">Wage: </span>
-                    <span className="text-amber-400">{formatCurrency(job.wagePerDay || job.dailyWage)}</span>
+                    <span className="text-amber-400">{formatCurrency(job.offeredWagePerDay)}</span>
                   </div>
                   <div className="col-span-2">
                     <span className="text-slate-500">Period: </span>
@@ -181,7 +185,7 @@ const ClientDashboard = () => {
                         </div>
                       </td>
                       <td className="px-5 py-3 text-sm text-white">{worker.jobTitle || worker.workRequestTitle || '—'}</td>
-                      <td className="px-5 py-3 text-sm text-amber-400">{formatCurrency(worker.wagePerDay || worker.dailyWage)}</td>
+                      <td className="px-5 py-3 text-sm text-amber-400">{formatCurrency(worker.agreedWage)}</td>
                       <td className="px-5 py-3">
                         <div>
                           <p className="text-sm text-white">{formatCurrency(worker.totalPaid || 0)}</p>

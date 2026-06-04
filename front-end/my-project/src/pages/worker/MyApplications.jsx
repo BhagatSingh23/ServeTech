@@ -50,7 +50,7 @@ const MyApplications = () => {
 
     setWithdrawing(true);
     try {
-      await api.patch(`/worker/applications/${app.applicationId || app.id}/withdraw`);
+      await api.patch(`/applications/${app.id}/withdraw`);
       toast.success('Application withdrawn successfully');
       setWithdrawModal({ open: false, application: null });
       fetchApplications();
@@ -115,7 +115,7 @@ const MyApplications = () => {
                 <div>
                   <p className="text-xs text-slate-500">Proposed Wage</p>
                   <p className="text-sm text-amber-400 font-semibold">
-                    {formatCurrency(app.proposedWage || app.proposedDailyWage)}/day
+                    {formatCurrency(app.proposedWagePerDay)}/day
                   </p>
                 </div>
                 <div>
@@ -232,7 +232,7 @@ const ApplicationDetail = ({ application }) => {
         </div>
         <div>
           <p className="text-xs text-slate-400">Your Proposed Wage</p>
-          <p className="text-sm text-amber-400 font-semibold">{formatCurrency(app.proposedWage || app.proposedDailyWage || 0)}/day</p>
+          <p className="text-sm text-amber-400 font-semibold">{formatCurrency(app.proposedWagePerDay || 0)}/day</p>
         </div>
         <div>
           <p className="text-xs text-slate-400">Duration</p>

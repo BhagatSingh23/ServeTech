@@ -81,15 +81,19 @@ const WorkerProfile = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await updateWorkerProfile({
+      // Convert skill names to IDs (matching DB order: PAINTER=1, PLUMBER=2, etc.)
+      const skillIds = editData.skills.map((skill) => SKILLS.indexOf(skill) + 1).filter((id) => id > 0);
+
+      await updateWorkerProfile({
         bio: editData.bio.trim(),
-        skills: editData.skills,
+        skillIds: skillIds,
         dailyWage: Number(editData.dailyWage),
         experienceYears: Number(editData.experienceYears),
       });
-      setProfile(response.data.data || { ...profile, ...editData });
       setEditMode(false);
       toast.success('Profile updated successfully');
+      // Re-fetch profile to show updated data from server
+      fetchProfile();
     } catch {
       toast.error('Failed to update profile');
     } finally {

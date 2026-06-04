@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../../components/common/DashboardLayout';
 import Button from '../../components/common/Button';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useToast } from '../../components/common/Toast';
-import { createWorkRequest } from '../../api/client';
+import { createWorkRequest, getWorkRequestById, updateWorkRequest } from '../../api/client';
 import { getLocationByPincode } from '../../api/auth';
 import { formatCurrency } from '../../utils/formatCurrency';
 
@@ -12,7 +13,18 @@ const SKILLS = [
   'WELDER', 'DRIVER', 'COOK', 'GARDENER', 'CLEANER', 'HELPER', 'LABOUR', 'OTHER',
 ];
 
+// Get today's datetime in local format for min attribute
+const getTodayMin = () => {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 16);
+};
+
 const PostJob = () => {
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+  const isEditMode = !!editId;
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -26,14 +38,72 @@ const PostJob = () => {
     endDate: '',
     workersNeeded: 1,
     wagePerDay: '',
+    negotiable: true,
     urgent: false,
   });
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(false);
   const [pincodeLoading, setPincodeLoading] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
+
+  // Load existing job data when editing
+  useEffect(() => {
+    if (isEditMode) {
+      loadJobData();
+    }
+  }, [editId]);
+
+  const loadJobData = async () => {
+    setPageLoading(true);
+    try {
+      const response = await getWorkRequestById(editId);
+      const job = response.data.data;
+      if (job) {
+        // Convert date to datetime-local format if needed
+        const startDate = job.startDate ? (job.startDate.includes('T') ? job.startDate.slice(0, 16) : job.startDate + 'T09:00') : '';
+        const endDate = job.endDate ? (job.endDate.includes('T') ? job.endDate.slice(0, 16) : job.endDate + 'T18:00') : '';
+
+        setFormData({
+          title: job.title || '',
+          description: job.description || '',
+          skillsRequired: job.requiredSkills || job.skills || [],
+          pincode: job.pincode || '',
+          address: job.workAddress || '',
+          block: '',
+          district: '',
+          state: '',
+          startDate,
+          endDate,
+          workersNeeded: job.workersNeeded || 1,
+          wagePerDay: job.offeredWagePerDay || '',
+          negotiable: job.isNegotiable !== false,
+          urgent: job.isUrgent || false,
+        });
+
+        // Auto-lookup pincode to fill location
+        if (job.pincode && job.pincode.length === 6) {
+          try {
+            const locRes = await getLocationByPincode(job.pincode);
+            const loc = locRes.data.data;
+            setFormData((prev) => ({
+              ...prev,
+              block: loc.block || loc.area || '',
+              district: loc.district || '',
+              state: loc.state || '',
+            }));
+          } catch { /* ignore */ }
+        }
+      }
+    } catch {
+      toast.error('Failed to load job data');
+      navigate('/client/my-jobs');
+    } finally {
+      setPageLoading(false);
+    }
+  };
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -94,8 +164,8 @@ const PostJob = () => {
     if (!formData.description.trim()) newErrors.description = 'Description is required';
     if (formData.skillsRequired.length === 0) newErrors.skillsRequired = 'Select at least one skill';
     if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = 'Enter a valid 6-digit pincode';
-    if (!formData.startDate) newErrors.startDate = 'Start date is required';
-    if (!formData.endDate) newErrors.endDate = 'End date is required';
+    if (!formData.startDate) newErrors.startDate = 'Start date & time is required';
+    if (!formData.endDate) newErrors.endDate = 'End date & time is required';
     if (formData.startDate && formData.endDate && new Date(formData.endDate) < new Date(formData.startDate)) {
       newErrors.endDate = 'End date must be after start date';
     }
@@ -111,31 +181,49 @@ const PostJob = () => {
 
     setLoading(true);
     try {
-      await createWorkRequest({
+      const payload = {
         title: formData.title.trim(),
         description: formData.description.trim(),
-        skillsRequired: formData.skillsRequired,
+        skillIds: formData.skillsRequired.map((skill) => SKILLS.indexOf(skill) + 1),
         pincode: formData.pincode,
-        address: formData.address.trim(),
+        workAddress: formData.address.trim(),
         startDate: formData.startDate,
         endDate: formData.endDate,
-        numberOfWorkers: Number(formData.workersNeeded),
-        wagePerDay: Number(formData.wagePerDay),
-        urgent: formData.urgent,
-      });
-      toast.success('Job posted successfully!');
+        estimatedDurationDays: durationDays(),
+        workersNeeded: Number(formData.workersNeeded),
+        offeredWagePerDay: Number(formData.wagePerDay),
+        isUrgent: formData.urgent,
+        isNegotiable: formData.negotiable,
+      };
+
+      if (isEditMode) {
+        await updateWorkRequest(editId, payload);
+        toast.success('Job updated successfully!');
+      } else {
+        await createWorkRequest(payload);
+        toast.success('Job posted successfully!');
+      }
       navigate('/client/my-jobs');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to post job');
+      toast.error(error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'post'} job`);
     } finally {
       setLoading(false);
     }
   };
 
   const budget = calculateBudget();
+  const todayMin = getTodayMin();
+
+  if (pageLoading) {
+    return (
+      <DashboardLayout pageTitle={isEditMode ? 'Edit Job' : 'Post a New Job'}>
+        <LoadingSpinner text="Loading job data..." />
+      </DashboardLayout>
+    );
+  }
 
   return (
-    <DashboardLayout pageTitle="Post a New Job">
+    <DashboardLayout pageTitle={isEditMode ? 'Edit Job' : 'Post a New Job'}>
       <div className="max-w-3xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title */}
@@ -273,22 +361,23 @@ const PostJob = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Start Date</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Start Date & Time</label>
                   <input
-                    type="date"
+                    type="datetime-local"
                     value={formData.startDate}
                     onChange={(e) => updateField('startDate', e.target.value)}
+                    min={todayMin}
                     className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all [color-scheme:dark]"
                   />
                   {errors.startDate && <p className="text-red-400 text-xs mt-1">{errors.startDate}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">End Date</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1.5">End Date & Time</label>
                   <input
-                    type="date"
+                    type="datetime-local"
                     value={formData.endDate}
                     onChange={(e) => updateField('endDate', e.target.value)}
-                    min={formData.startDate}
+                    min={formData.startDate || todayMin}
                     className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all [color-scheme:dark]"
                   />
                   {errors.endDate && <p className="text-red-400 text-xs mt-1">{errors.endDate}</p>}
@@ -321,6 +410,25 @@ const PostJob = () => {
                 </div>
               </div>
 
+              {/* Negotiable Toggle */}
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <div
+                    onClick={() => updateField('negotiable', !formData.negotiable)}
+                    className={`relative w-11 h-6 rounded-full transition-all duration-200 cursor-pointer ${
+                      formData.negotiable ? 'bg-green-500' : 'bg-slate-600'
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full transition-transform duration-200 ${
+                        formData.negotiable ? 'translate-x-5' : ''
+                      }`}
+                    />
+                  </div>
+                  <span className="text-sm text-slate-300">Wage is Negotiable</span>
+                </label>
+              </div>
+
               {/* Budget Calculation */}
               {budget !== null && (
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
@@ -342,7 +450,7 @@ const PostJob = () => {
               Cancel
             </Button>
             <Button variant="primary" type="submit" loading={loading} size="lg">
-              Post Job
+              {isEditMode ? 'Update Job' : 'Post Job'}
             </Button>
           </div>
         </form>

@@ -22,10 +22,12 @@ public class WorkRequestPublicController {
 
     @GetMapping("/browse")
     public ResponseEntity<ApiResponse> browseJobs(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestParam(required = false) String pincode,
             @RequestParam(required = false) List<Long> skillIds,
             @RequestParam(required = false) Boolean urgent) {
-        List<WorkRequestResponse> jobs = workRequestPublicService.browseJobs(pincode, skillIds, urgent);
+        List<WorkRequestResponse> jobs = workRequestPublicService.browseJobs(
+                userPrincipal.getId(), pincode, skillIds, urgent);
         return ResponseEntity.ok(new ApiResponse(true, "Jobs fetched", jobs));
     }
 

@@ -81,6 +81,16 @@ public class OtpService {
         throw new CustomException("Invalid OTP");
     }
 
+    // Check if OTP was already successfully verified for this phone number and purpose
+    public boolean isOtpAlreadyVerified(String phoneNumber, String purpose) {
+        Optional<OtpVerification> otpOptional = otpRepository
+                .findTopByPhoneNumberAndPurposeOrderByCreatedAtDesc(phoneNumber, purpose);
+
+        return otpOptional.isPresent() 
+                && otpOptional.get().getIsVerified() 
+                && !otpOptional.get().isExpired();
+    }
+
     // Remove the expired OTPs from the db
     @Transactional
     public void cleanupExpiredOtps() {

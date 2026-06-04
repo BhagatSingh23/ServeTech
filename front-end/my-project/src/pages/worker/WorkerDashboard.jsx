@@ -94,10 +94,10 @@ const WorkerDashboard = () => {
             {currentWork.map((work) => (
               <div key={work.assignmentId || work.id} className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-5">
                 <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-white font-semibold text-base truncate pr-2">{work.title || work.workRequestTitle}</h3>
-                  <Badge status={work.status || work.progressStatus} type="workProgress" />
+                  <h3 className="text-white font-semibold text-base truncate pr-2">{work.workTitle || work.title}</h3>
+                  <Badge status={work.progressStatus || work.status} type="workProgress" />
                 </div>
-                <p className="text-sm text-slate-400 mb-3">{work.clientName && `Client: ${work.clientName}`}</p>
+                <p className="text-sm text-slate-400 mb-3">{work.employerName && `Client: ${work.employerName}`}</p>
 
                 {/* Progress Bar */}
                 <div className="mb-3">
@@ -114,8 +114,8 @@ const WorkerDashboard = () => {
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-slate-400">
-                  <span>{formatCurrency(work.wagePerDay || work.dailyWage)}/day</span>
-                  <span>{formatDate(work.startDate)} - {formatDate(work.endDate)}</span>
+                  <span>{formatCurrency(work.agreedWagePerDay)}/day</span>
+                  <span>{formatDate(work.startDate)} - {formatDate(work.expectedEndDate || work.endDate)}</span>
                 </div>
               </div>
             ))}
@@ -139,12 +139,12 @@ const WorkerDashboard = () => {
             {upcomingWork.map((work) => (
               <div key={work.assignmentId || work.id} className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-5">
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-white font-semibold truncate pr-2">{work.title || work.workRequestTitle}</h3>
+                  <h3 className="text-white font-semibold truncate pr-2">{work.workTitle || work.title}</h3>
                   <Badge status={work.status || 'NOT_STARTED'} type="workProgress" />
                 </div>
-                <p className="text-sm text-slate-400 mb-1">{work.clientName && `Client: ${work.clientName}`}</p>
+                <p className="text-sm text-slate-400 mb-1">{work.employerName && `Client: ${work.employerName}`}</p>
                 <div className="flex items-center justify-between text-xs text-slate-400 mt-2">
-                  <span>{formatCurrency(work.wagePerDay || work.dailyWage)}/day</span>
+                  <span>{formatCurrency(work.agreedWagePerDay)}/day</span>
                   <span>Starts {formatDate(work.startDate)}</span>
                 </div>
               </div>
@@ -170,29 +170,29 @@ const WorkerDashboard = () => {
               <div key={booking.assignmentId || booking.id} className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-5">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-white font-semibold truncate">{booking.title || booking.workRequestTitle}</h3>
-                    <p className="text-sm text-slate-400 mt-1">Client: {booking.clientName || '—'}</p>
+                    <h3 className="text-white font-semibold truncate">{booking.workTitle || booking.title}</h3>
+                    <p className="text-sm text-slate-400 mt-1">Client: {booking.employerName || '—'}</p>
                   </div>
-                  <Badge status={booking.status || booking.progressStatus || 'COMPLETED'} type="workProgress" />
+                  <Badge status={booking.progressStatus || booking.status || 'COMPLETED'} type="workProgress" />
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                   <div>
                     <p className="text-xs text-slate-500">Duration</p>
-                    <p className="text-sm text-white">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</p>
+                    <p className="text-sm text-white">{formatDate(booking.startDate)} - {formatDate(booking.expectedEndDate || booking.endDate)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500">Daily Wage</p>
-                    <p className="text-sm text-white">{formatCurrency(booking.wagePerDay || booking.dailyWage)}</p>
+                    <p className="text-sm text-white">{formatCurrency(booking.agreedWagePerDay)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500">Total Earned</p>
-                    <p className="text-sm text-amber-400 font-semibold">{formatCurrency(booking.totalEarned || booking.totalPaid || 0)}</p>
+                    <p className="text-sm text-amber-400 font-semibold">{formatCurrency(booking.amountPaid || 0)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500">Rating</p>
                     <p className="text-sm text-white">
-                      {booking.rating ? `${booking.rating} ⭐` : 'Not rated'}
+                      {booking.clientRating ? `${booking.clientRating} ⭐` : 'Not rated'}
                     </p>
                   </div>
                 </div>

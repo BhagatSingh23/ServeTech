@@ -17,4 +17,5 @@ public interface WorkApplicationRepository extends JpaRepository<WorkApplication
     Optional<WorkApplication> findByWorkerIdAndWorkRequestId(Long workerId, Long workRequestId);
     List<WorkApplication> findTop5ByWorkerIdOrderByAppliedAtDesc(Long workerId);
     long countByWorkRequestIdAndStatus(Long workRequestId, ApplicationStatus status);
+    void deleteByWorkRequestId(Long workRequestId);
 }

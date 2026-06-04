@@ -2,6 +2,7 @@ package com.ServeTech.Webapp.dto.request;
 
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class CreateWorkRequestDTO {
@@ -25,10 +26,10 @@ public class CreateWorkRequestDTO {
 
     @NotNull(message = "Start date is required")
     @FutureOrPresent(message = "Start date must be today or in the future")
-    private LocalDate startDate;
+    private LocalDateTime startDate;
 
     @NotNull(message = "End date is required")
-    private LocalDate endDate;
+    private LocalDateTime endDate;
 
     private Integer estimatedDurationDays;
 
@@ -40,6 +41,8 @@ public class CreateWorkRequestDTO {
     private Double offeredWagePerDay;
 
     private Boolean isUrgent;
+
+    private Boolean isNegotiable;
 
     private String additionalRequirements;
 
@@ -68,10 +71,10 @@ public class CreateWorkRequestDTO {
     public void setPincode(String pincode) { this.pincode = pincode; }
     public String getWorkAddress() { return workAddress; }
     public void setWorkAddress(String workAddress) { this.workAddress = workAddress; }
-    public LocalDate getStartDate() { return startDate; }
-    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
-    public LocalDate getEndDate() { return endDate; }
-    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
+    public LocalDateTime getStartDate() { return startDate; }
+    public void setStartDate(LocalDateTime startDate) { this.startDate = startDate; }
+    public LocalDateTime getEndDate() { return endDate; }
+    public void setEndDate(LocalDateTime endDate) { this.endDate = endDate; }
     public Integer getEstimatedDurationDays() { return estimatedDurationDays; }
     public void setEstimatedDurationDays(Integer estimatedDurationDays) { this.estimatedDurationDays = estimatedDurationDays; }
     public Integer getWorkersNeeded() { return workersNeeded; }
@@ -80,6 +83,8 @@ public class CreateWorkRequestDTO {
     public void setOfferedWagePerDay(Double offeredWagePerDay) { this.offeredWagePerDay = offeredWagePerDay; }
     public Boolean getIsUrgent() { return isUrgent; }
     public void setIsUrgent(Boolean isUrgent) { this.isUrgent = isUrgent; }
+    public Boolean getIsNegotiable() { return isNegotiable; }
+    public void setIsNegotiable(Boolean isNegotiable) { this.isNegotiable = isNegotiable; }
     public String getAdditionalRequirements() { return additionalRequirements; }
     public void setAdditionalRequirements(String additionalRequirements) { this.additionalRequirements = additionalRequirements; }
 }

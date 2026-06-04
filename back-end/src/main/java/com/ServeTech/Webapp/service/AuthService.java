@@ -63,14 +63,13 @@ public class AuthService {
     // Register user
     @Transactional
     public AuthResponse signup(@Valid @RequestBody SignupRequest request) {
-        // Verify OTP (OTP is logged to console in dev mode since SMS is disabled)
-        boolean otpValid = otpService.verifyOtp(
+        // Verify that the OTP was already successfully verified in Step 2
+        boolean isOtpVerified = otpService.isOtpAlreadyVerified(
                 request.getPhoneNumber(),
-                request.getOtp(),
                 "REGISTRATION"
         );
-        if (!otpValid) {
-            throw new CustomException("Invalid or expired OTP");
+        if (!isOtpVerified) {
+            throw new CustomException("Phone number not verified. Please verify OTP first.");
         }
 
         // 2. Check if phone number already exists
@@ -109,21 +108,28 @@ public class AuthService {
             suffix++;
         }
 
-        // 8. Fetch the location from the pincode gracefully
-        Location location = null;
-        try {
-            location = pincodeService.fetchLocation(request.getPincode());
-        } catch (Exception e) {
-            // Ignore API failure, proceed with fallback
-            System.err.println("Pincode API failed: " + e.getMessage());
+        // 8. Resolve location: prefer values from request, fallback to pincode API, then defaults
+        String block = request.getBlock();
+        String district = request.getDistrict();
+        String state = request.getState();
+
+        if (block == null || block.isBlank() || district == null || district.isBlank() || state == null || state.isBlank()) {
+            try {
+                Location location = pincodeService.fetchLocation(request.getPincode());
+                if (location != null) {
+                    if (block == null || block.isBlank()) block = location.getBlock();
+                    if (district == null || district.isBlank()) district = location.getDistrict();
+                    if (state == null || state.isBlank()) state = location.getState();
+                }
+            } catch (Exception e) {
+                System.err.println("Pincode API failed: " + e.getMessage());
+            }
         }
 
-        if (location == null) {
-            location = new Location();
-            location.setBlock("Unknown Area");
-            location.setDistrict("Unknown District");
-            location.setState("Unknown State");
-        }
+        // Final fallback for any still-missing fields
+        if (block == null || block.isBlank()) block = "Unknown Area";
+        if (district == null || district.isBlank()) district = "Unknown District";
+        if (state == null || state.isBlank()) state = "Unknown State";
 
         // 9. Create user
         User user = new User();
@@ -136,9 +142,9 @@ public class AuthService {
         user.setDateOfBirth(request.getDateOfBirth());
         user.setGender(request.getGender());
         user.setPincode(request.getPincode());
-        user.setBlock(location.getBlock());
-        user.setDistrict(location.getDistrict());
-        user.setState(location.getState());
+        user.setBlock(block);
+        user.setDistrict(district);
+        user.setState(state);
         user.setPhoneVerified(true); // OTP verified
         user.setAccountStatus(AccountStatus.ACTIVE);
 

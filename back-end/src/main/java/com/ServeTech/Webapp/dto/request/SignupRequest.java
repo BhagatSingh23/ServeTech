@@ -36,6 +36,15 @@ public class SignupRequest {
     @Pattern(regexp = "^[1-9]\\d{5}$", message = "Invalid pincode")
     private String pincode;
 
+    @Size(max = 100, message = "Block/Area must not exceed 100 characters")
+    private String block;
+
+    @Size(max = 100, message = "District must not exceed 100 characters")
+    private String district;
+
+    @Size(max = 100, message = "State must not exceed 100 characters")
+    private String state;
+
     // Updated regex to include ROLE_ADMIN and match backend expectations
     @NotBlank(message = "Role is required")
     @Pattern(regexp = "^(ROLE_WORKER|ROLE_CLIENT|ROLE_ADMIN)$", message = "Role must be ROLE_WORKER, ROLE_CLIENT or ROLE_ADMIN")
@@ -62,6 +71,12 @@ public class SignupRequest {
     public void setGender(GenderType gender) { this.gender = gender; }
     public String getPincode() { return pincode; }
     public void setPincode(String pincode) { this.pincode = pincode; }
+    public String getBlock() { return block; }
+    public void setBlock(String block) { this.block = block; }
+    public String getDistrict() { return district; }
+    public void setDistrict(String district) { this.district = district; }
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
     public String getOtp() { return otp; }

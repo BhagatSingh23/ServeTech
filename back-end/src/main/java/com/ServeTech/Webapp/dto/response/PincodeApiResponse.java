@@ -1,32 +1,36 @@
 package com.ServeTech.Webapp.dto.response;
 
 import com.ServeTech.Webapp.entity.Location;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
 public class PincodeApiResponse {
 
-    private String Message;
-    private String Status;
+    @JsonAlias({"Message"})
+    private String message;
+
+    @JsonAlias({"Status"})
+    private String status;
 
     @JsonProperty("PostOffice")
     private List<Location> postOffice;
 
     public String getMessage() {
-        return Message;
+        return message;
     }
 
     public void setMessage(String message) {
-        Message = message;
+        this.message = message;
     }
 
     public String getStatus() {
-        return Status;
+        return status;
     }
 
     public void setStatus(String status) {
-        Status = status;
+        this.status = status;
     }
 
     public List<Location> getPostOffice() {

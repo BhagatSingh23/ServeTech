@@ -208,6 +208,9 @@ const Register = () => {
         gender: formData.gender,
         role: 'ROLE_' + formData.role,
         pincode: formData.pincode,
+        block: formData.block,
+        district: formData.district,
+        state: formData.state,
         otp: otp.join(''),
       };
 

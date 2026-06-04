@@ -123,18 +123,21 @@ public class ClientService {
         workRequest.setWorkersNeeded(request.getWorkersNeeded());
         workRequest.setOfferedWagePerDay(request.getOfferedWagePerDay());
         workRequest.setIsUrgent(request.getIsUrgent() != null ? request.getIsUrgent() : false);
+        workRequest.setIsNegotiable(request.getIsNegotiable() != null ? request.getIsNegotiable() : true);
         workRequest.setStatus(WorkRequestStatus.OPEN);
 
         if (request.getEstimatedDurationDays() != null) {
             workRequest.setEstimatedDurationDays(request.getEstimatedDurationDays());
         } else if (request.getStartDate() != null && request.getEndDate() != null) {
-            workRequest.setEstimatedDurationDays((int) ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate()));
+            // +1 to include both start and end date as working days
+            workRequest.setEstimatedDurationDays((int) ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate()) + 1);
         }
 
         // Calculate total budget
         int days = workRequest.getEstimatedDurationDays() != null ? workRequest.getEstimatedDurationDays() : 1;
         int workers = workRequest.getWorkersNeeded() != null ? workRequest.getWorkersNeeded() : 1;
-        workRequest.setTotalBudget(request.getOfferedWagePerDay() * days * workers);
+        double wage = request.getOfferedWagePerDay() != null ? request.getOfferedWagePerDay() : 0;
+        workRequest.setTotalBudget(wage * days * workers);
 
         if (request.getSkillIds() != null && !request.getSkillIds().isEmpty()) {
             Set<Skill> skills = new HashSet<>(skillRepository.findAllById(request.getSkillIds()));
@@ -230,6 +233,14 @@ public class ClientService {
             throw new CustomException("Cannot delete work request in " + workRequest.getStatus() + " status", HttpStatus.BAD_REQUEST);
         }
 
+        // Delete associated applications first (FK constraint)
+        workApplicationRepository.deleteByWorkRequestId(requestId);
+
+        // Clear skills join table
+        workRequest.getRequiredSkills().clear();
+        workRequestRepository.save(workRequest);
+
+        // Now delete the work request itself
         workRequestRepository.delete(workRequest);
     }
 

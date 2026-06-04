@@ -29,5 +29,8 @@ public interface WorkRequestRepository extends JpaRepository<WorkRequest, Long> 
     @Query("SELECT wr FROM WorkRequest wr WHERE wr.status = 'OPEN' AND wr.isUrgent = true ORDER BY wr.createdAt DESC")
     List<WorkRequest> findUrgentOpenRequests();
 
+    @Query("SELECT DISTINCT wr FROM WorkRequest wr JOIN wr.requiredSkills rs WHERE wr.status = 'OPEN' AND rs.id IN :skillIds ORDER BY wr.isUrgent DESC, wr.createdAt DESC")
+    List<WorkRequest> findOpenRequestsBySkills(@Param("skillIds") List<Long> skillIds);
+
     long countByStatus(WorkRequestStatus status);
 }

@@ -58,12 +58,11 @@ public class WorkRequest {
     @Column(length = 500, name = "work_address")
     private String workAddress;
 
-    // ---------- Work Details ----------
     @Column(name = "start_date")
-    private LocalDate startDate;
+    private LocalDateTime startDate;
 
     @Column(name = "end_date")
-    private LocalDate endDate;
+    private LocalDateTime endDate;
 
     @Column(name = "estimated_duration_days")
     private Integer estimatedDurationDays;
@@ -84,6 +83,9 @@ public class WorkRequest {
 
     @Column(name = "is_urgent", nullable = false)
     private Boolean isUrgent = false;
+
+    @Column(name = "is_negotiable", nullable = false)
+    private Boolean isNegotiable = true;
 
     // ---------- Timestamps ----------
     @Column(nullable = false, updatable = false, name = "created_at")
@@ -186,19 +188,19 @@ public class WorkRequest {
         this.workAddress = workAddress;
     }
 
-    public LocalDate getStartDate() {
+    public LocalDateTime getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(LocalDate startDate) {
+    public void setStartDate(LocalDateTime startDate) {
         this.startDate = startDate;
     }
 
-    public LocalDate getEndDate() {
+    public LocalDateTime getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(LocalDate endDate) {
+    public void setEndDate(LocalDateTime endDate) {
         this.endDate = endDate;
     }
 
@@ -248,6 +250,14 @@ public class WorkRequest {
 
     public void setIsUrgent(Boolean isUrgent) {
         this.isUrgent = isUrgent;
+    }
+
+    public Boolean getIsNegotiable() {
+        return isNegotiable;
+    }
+
+    public void setIsNegotiable(Boolean isNegotiable) {
+        this.isNegotiable = isNegotiable;
     }
 
     public LocalDateTime getCreatedAt() {

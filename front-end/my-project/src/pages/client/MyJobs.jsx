@@ -39,8 +39,12 @@ const MyJobs = () => {
     try {
       const response = await getMyWorkRequests(activeTab || undefined);
       setJobs(response.data.data || []);
-    } catch {
-      toast.error('Failed to load jobs');
+    } catch (error) {
+      if (error.response?.status === 403) {
+        toast.error('Access denied. Only clients can view work requests.');
+      } else {
+        toast.error('Failed to load jobs');
+      }
     } finally {
       setLoading(false);
     }
@@ -139,7 +143,7 @@ const MyJobs = () => {
 
               {/* Skills Tags */}
               <div className="flex flex-wrap gap-1.5 mb-3">
-                {(job.skills || job.skillsRequired || []).map((skill) => (
+                {(job.requiredSkills || job.skills || []).map((skill) => (
                   <span key={skill} className="bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded-md">
                     {skill}
                   </span>
@@ -151,12 +155,12 @@ const MyJobs = () => {
                 <div>
                   <p className="text-xs text-slate-500">Workers</p>
                   <p className="text-white">
-                    {job.workersAssigned || 0}/{job.workersNeeded || job.numberOfWorkers || 0}
+                    {job.workersAssigned || 0}/{job.workersNeeded || 0}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-500">Wage/Day</p>
-                  <p className="text-amber-400 font-semibold">{formatCurrency(job.wagePerDay || job.dailyWage)}</p>
+                  <p className="text-amber-400 font-semibold">{formatCurrency(job.offeredWagePerDay)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-500">Start</p>

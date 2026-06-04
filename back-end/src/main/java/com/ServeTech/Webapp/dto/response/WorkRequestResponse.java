@@ -20,14 +20,15 @@ public class WorkRequestResponse {
     private List<String> requiredSkills;
     private String pincode;
     private String workAddress;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
     private Integer estimatedDurationDays;
     private Integer workersNeeded;
     private Double offeredWagePerDay;
     private Double totalBudget;
     private WorkRequestStatus status;
     private Boolean isUrgent;
+    private Boolean isNegotiable;
     private String additionalRequirements;
     private LocalDateTime createdAt;
     private Boolean hasApplied;
@@ -53,6 +54,7 @@ public class WorkRequestResponse {
         response.setTotalBudget(wr.getTotalBudget());
         response.setStatus(wr.getStatus());
         response.setIsUrgent(wr.getIsUrgent());
+        response.setIsNegotiable(wr.getIsNegotiable() != null ? wr.getIsNegotiable() : true);
         response.setCreatedAt(wr.getCreatedAt());
         response.setHasApplied(false);
 
@@ -84,10 +86,10 @@ public class WorkRequestResponse {
     public void setPincode(String pincode) { this.pincode = pincode; }
     public String getWorkAddress() { return workAddress; }
     public void setWorkAddress(String workAddress) { this.workAddress = workAddress; }
-    public LocalDate getStartDate() { return startDate; }
-    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
-    public LocalDate getEndDate() { return endDate; }
-    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
+    public LocalDateTime getStartDate() { return startDate; }
+    public void setStartDate(LocalDateTime startDate) { this.startDate = startDate; }
+    public LocalDateTime getEndDate() { return endDate; }
+    public void setEndDate(LocalDateTime endDate) { this.endDate = endDate; }
     public Integer getEstimatedDurationDays() { return estimatedDurationDays; }
     public void setEstimatedDurationDays(Integer estimatedDurationDays) { this.estimatedDurationDays = estimatedDurationDays; }
     public Integer getWorkersNeeded() { return workersNeeded; }
@@ -100,6 +102,8 @@ public class WorkRequestResponse {
     public void setStatus(WorkRequestStatus status) { this.status = status; }
     public Boolean getIsUrgent() { return isUrgent; }
     public void setIsUrgent(Boolean isUrgent) { this.isUrgent = isUrgent; }
+    public Boolean getIsNegotiable() { return isNegotiable; }
+    public void setIsNegotiable(Boolean isNegotiable) { this.isNegotiable = isNegotiable; }
     public String getAdditionalRequirements() { return additionalRequirements; }
     public void setAdditionalRequirements(String additionalRequirements) { this.additionalRequirements = additionalRequirements; }
     public LocalDateTime getCreatedAt() { return createdAt; }
