@@ -173,8 +173,8 @@ public class WorkApplicationService {
         assignment.setAgreedWagePerDay(application.getProposedWagePerDay() != null
                 ? application.getProposedWagePerDay()
                 : workRequest.getOfferedWagePerDay());
-        assignment.setStartDate(workRequest.getStartDate());
-        assignment.setExpectedEndDate(workRequest.getEndDate());
+        assignment.setStartDate(workRequest.getStartDate() != null ? workRequest.getStartDate().toLocalDate() : null);
+        assignment.setExpectedEndDate(workRequest.getEndDate() != null ? workRequest.getEndDate().toLocalDate() : null);
         assignment.setProgressStatus(WorkProgressStatus.NOT_STARTED);
 
         // Calculate total amount

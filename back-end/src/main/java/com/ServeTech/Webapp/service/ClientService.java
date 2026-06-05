@@ -203,6 +203,7 @@ public class ClientService {
         if (request.getWorkersNeeded() != null) workRequest.setWorkersNeeded(request.getWorkersNeeded());
         if (request.getOfferedWagePerDay() != null) workRequest.setOfferedWagePerDay(request.getOfferedWagePerDay());
         if (request.getIsUrgent() != null) workRequest.setIsUrgent(request.getIsUrgent());
+        if (request.getIsNegotiable() != null) workRequest.setIsNegotiable(request.getIsNegotiable());
         if (request.getEstimatedDurationDays() != null) workRequest.setEstimatedDurationDays(request.getEstimatedDurationDays());
 
         if (request.getSkillIds() != null && !request.getSkillIds().isEmpty()) {
@@ -271,7 +272,9 @@ public class ClientService {
                 .stream()
                 .map(ApplicationResponse::fromEntity)
                 .collect(Collectors.toList());
-    }    public List<ClientAssignmentDTO> getClientAssignments(Long clientId) {
+    }
+
+    public List<ClientAssignmentDTO> getClientAssignments(Long clientId) {
         List<WorkAssignment> assignments = workAssignmentRepository.findAllByClientId(clientId);
         return assignments.stream().map(a -> {
             ClientAssignmentDTO dto = new ClientAssignmentDTO();
