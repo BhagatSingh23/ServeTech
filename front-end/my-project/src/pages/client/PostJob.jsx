@@ -147,7 +147,9 @@ const PostJob = () => {
     if (!wagePerDay || !startDate || !endDate || !workersNeeded) return null;
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const days = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    const days = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1);
     return Number(wagePerDay) * days * Number(workersNeeded);
   };
 
@@ -155,7 +157,9 @@ const PostJob = () => {
     if (!formData.startDate || !formData.endDate) return 0;
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
-    return Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    return Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1);
   };
 
   const validate = () => {

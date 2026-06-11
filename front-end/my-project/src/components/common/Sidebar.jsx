@@ -7,6 +7,7 @@ const navConfig = {
     { path: '/worker/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/worker/browse-jobs', label: 'Browse Jobs', icon: '🔍' },
     { path: '/worker/applications', label: 'My Applications', icon: '📋' },
+    { path: '/worker/complaints', label: 'Complaints', icon: '📢' },
     { path: '/worker/profile', label: 'Profile', icon: '👤' },
   ],
   CLIENT: [
@@ -14,6 +15,7 @@ const navConfig = {
     { path: '/client/post-job', label: 'Post Job', icon: '📝' },
     { path: '/client/my-jobs', label: 'My Jobs', icon: '💼' },
     { path: '/client/payments', label: 'Payments', icon: '💰' },
+    { path: '/client/complaints', label: 'Complaints', icon: '📢' },
   ],
   ADMIN: [
     { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },

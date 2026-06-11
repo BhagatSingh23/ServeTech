@@ -11,10 +11,10 @@ import { formatDate, timeAgo } from '../../utils/formatDate';
 
 const TABS = [
   { key: '', label: 'All' },
-  { key: 'OPEN', label: 'Submitted' },
-  { key: 'IN_PROGRESS', label: 'Under Review' },
+  { key: 'SUBMITTED', label: 'Submitted' },
+  { key: 'UNDER_REVIEW', label: 'Under Review' },
   { key: 'RESOLVED', label: 'Resolved' },
-  { key: 'DISMISSED', label: 'Closed' },
+  { key: 'CLOSED', label: 'Closed' },
 ];
 
 const Complaints = () => {

@@ -70,13 +70,13 @@ public class ClientService {
         List<WorkRequestResponse> activeJobs = workRequestRepository
                 .findByClientIdAndStatusOrderByCreatedAtDesc(clientId, WorkRequestStatus.OPEN)
                 .stream()
-                .map(WorkRequestResponse::fromEntity)
+                .map(this::mapToWorkRequestResponse)
                 .collect(Collectors.toList());
 
         activeJobs.addAll(workRequestRepository
                 .findByClientIdAndStatusOrderByCreatedAtDesc(clientId, WorkRequestStatus.IN_PROGRESS)
                 .stream()
-                .map(WorkRequestResponse::fromEntity)
+                .map(this::mapToWorkRequestResponse)
                 .collect(Collectors.toList()));
 
         List<ClientDashboardResponse.RecentWorkerDTO> recentWorkers = allAssignments.stream()
@@ -130,7 +130,7 @@ public class ClientService {
             workRequest.setEstimatedDurationDays(request.getEstimatedDurationDays());
         } else if (request.getStartDate() != null && request.getEndDate() != null) {
             // +1 to include both start and end date as working days
-            workRequest.setEstimatedDurationDays((int) ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate()) + 1);
+            workRequest.setEstimatedDurationDays((int) ChronoUnit.DAYS.between(request.getStartDate().toLocalDate(), request.getEndDate().toLocalDate()) + 1);
         }
 
         // Calculate total budget
@@ -152,7 +152,14 @@ public class ClientService {
             clientProfileRepository.save(profile);
         });
 
-        return WorkRequestResponse.fromEntity(saved);
+        return mapToWorkRequestResponse(saved);
+    }
+
+    private WorkRequestResponse mapToWorkRequestResponse(WorkRequest wr) {
+        WorkRequestResponse res = WorkRequestResponse.fromEntity(wr);
+        long accepted = workApplicationRepository.countByWorkRequestIdAndStatus(wr.getId(), com.ServeTech.Webapp.entity.enums.ApplicationStatus.ACCEPTED);
+        res.setWorkersAssigned((int) accepted);
+        return res;
     }
 
     public List<WorkRequestResponse> getWorkRequests(Long clientId, String status) {
@@ -167,7 +174,7 @@ public class ClientService {
         } else {
             requests = workRequestRepository.findByClientIdOrderByCreatedAtDesc(clientId);
         }
-        return requests.stream().map(WorkRequestResponse::fromEntity).collect(Collectors.toList());
+        return requests.stream().map(this::mapToWorkRequestResponse).collect(Collectors.toList());
     }
 
     public WorkRequestResponse getWorkRequestById(Long clientId, Long requestId) {
@@ -178,7 +185,7 @@ public class ClientService {
             throw new CustomException("Access denied: not your work request", HttpStatus.FORBIDDEN);
         }
 
-        return WorkRequestResponse.fromEntity(request);
+        return mapToWorkRequestResponse(request);
     }
 
     @Transactional
@@ -218,7 +225,7 @@ public class ClientService {
         workRequest.setTotalBudget(wage * days * workers);
 
         WorkRequest saved = workRequestRepository.save(workRequest);
-        return WorkRequestResponse.fromEntity(saved);
+        return mapToWorkRequestResponse(saved);
     }
 
     @Transactional
@@ -257,7 +264,7 @@ public class ClientService {
         workRequest.setStatus(WorkRequestStatus.CLOSED);
         workRequest.setClosedAt(LocalDateTime.now());
         WorkRequest saved = workRequestRepository.save(workRequest);
-        return WorkRequestResponse.fromEntity(saved);
+        return mapToWorkRequestResponse(saved);
     }
 
     public List<ApplicationResponse> getApplicationsForWorkRequest(Long clientId, Long requestId) {

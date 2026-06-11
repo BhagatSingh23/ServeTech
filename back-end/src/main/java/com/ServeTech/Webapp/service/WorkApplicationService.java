@@ -162,7 +162,7 @@ public class WorkApplicationService {
 
         // Accept the application
         application.accept("Accepted by client");
-        workApplicationRepository.save(application);
+        workApplicationRepository.saveAndFlush(application);
 
         // Create a work assignment
         WorkAssignment assignment = new WorkAssignment();

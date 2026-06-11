@@ -24,6 +24,9 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import Complaints from './pages/admin/Complaints';
 
+// Common pages
+import FileComplaint from './pages/common/FileComplaint';
+
 function App() {
   const { isAuthenticated, user } = useAuth();
 
@@ -48,6 +51,7 @@ function App() {
         <Route path="/worker/browse-jobs" element={<ProtectedRoute allowedRoles={['ROLE_WORKER']}><BrowseJobs /></ProtectedRoute>} />
         <Route path="/worker/applications" element={<ProtectedRoute allowedRoles={['ROLE_WORKER']}><MyApplications /></ProtectedRoute>} />
         <Route path="/worker/profile" element={<ProtectedRoute allowedRoles={['ROLE_WORKER']}><WorkerProfile /></ProtectedRoute>} />
+        <Route path="/worker/complaints" element={<ProtectedRoute allowedRoles={['ROLE_WORKER']}><FileComplaint /></ProtectedRoute>} />
 
         {/* Client Routes */}
         <Route path="/client/dashboard" element={<ProtectedRoute allowedRoles={['ROLE_CLIENT']}><ClientDashboard /></ProtectedRoute>} />
@@ -55,6 +59,7 @@ function App() {
         <Route path="/client/my-jobs" element={<ProtectedRoute allowedRoles={['ROLE_CLIENT']}><MyJobs /></ProtectedRoute>} />
         <Route path="/client/jobs/:id/applicants" element={<ProtectedRoute allowedRoles={['ROLE_CLIENT']}><ViewApplicants /></ProtectedRoute>} />
         <Route path="/client/payments" element={<ProtectedRoute allowedRoles={['ROLE_CLIENT']}><RecordPayment /></ProtectedRoute>} />
+        <Route path="/client/complaints" element={<ProtectedRoute allowedRoles={['ROLE_CLIENT']}><FileComplaint /></ProtectedRoute>} />
 
         {/* Admin Routes */}
         <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ROLE_ADMIN']}><AdminDashboard /></ProtectedRoute>} />

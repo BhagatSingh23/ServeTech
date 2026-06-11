@@ -86,7 +86,8 @@ public class AdminService {
 
         if (role != null && !role.isBlank() && status != null && !status.isBlank()) {
             try {
-                RoleType roleType = RoleType.valueOf(role.toUpperCase());
+                String parsedRole = role.toUpperCase().startsWith("ROLE_") ? role.toUpperCase() : "ROLE_" + role.toUpperCase();
+                RoleType roleType = RoleType.valueOf(parsedRole);
                 AccountStatus accountStatus = AccountStatus.valueOf(status.toUpperCase());
                 users = userRepository.findByRoleNameAndAccountStatus(roleType, accountStatus);
             } catch (IllegalArgumentException e) {
@@ -94,7 +95,8 @@ public class AdminService {
             }
         } else if (role != null && !role.isBlank()) {
             try {
-                RoleType roleType = RoleType.valueOf(role.toUpperCase());
+                String parsedRole = role.toUpperCase().startsWith("ROLE_") ? role.toUpperCase() : "ROLE_" + role.toUpperCase();
+                RoleType roleType = RoleType.valueOf(parsedRole);
                 users = userRepository.findByRoleName(roleType);
             } catch (IllegalArgumentException e) {
                 throw new CustomException("Invalid role: " + role, HttpStatus.BAD_REQUEST);
@@ -148,8 +150,8 @@ public class AdminService {
     public void rejectVerification(Long workerId) {
         WorkerProfile profile = workerProfileRepository.findByUserId(workerId)
                 .orElseThrow(() -> new CustomException("Worker profile not found", HttpStatus.NOT_FOUND));
-        profile.setIsVerified(false);
-        workerProfileRepository.save(profile);
+        workerProfileRepository.delete(profile);
+        userRepository.deleteById(workerId);
     }
 
     public List<WorkRequestResponse> getAllWorkRequests(String status) {

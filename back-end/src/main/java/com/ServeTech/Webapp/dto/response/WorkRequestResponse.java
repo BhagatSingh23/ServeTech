@@ -24,6 +24,7 @@ public class WorkRequestResponse {
     private LocalDateTime endDate;
     private Integer estimatedDurationDays;
     private Integer workersNeeded;
+    private Integer workersAssigned;
     private Double offeredWagePerDay;
     private Double totalBudget;
     private WorkRequestStatus status;
@@ -94,6 +95,8 @@ public class WorkRequestResponse {
     public void setEstimatedDurationDays(Integer estimatedDurationDays) { this.estimatedDurationDays = estimatedDurationDays; }
     public Integer getWorkersNeeded() { return workersNeeded; }
     public void setWorkersNeeded(Integer workersNeeded) { this.workersNeeded = workersNeeded; }
+    public Integer getWorkersAssigned() { return workersAssigned; }
+    public void setWorkersAssigned(Integer workersAssigned) { this.workersAssigned = workersAssigned; }
     public Double getOfferedWagePerDay() { return offeredWagePerDay; }
     public void setOfferedWagePerDay(Double offeredWagePerDay) { this.offeredWagePerDay = offeredWagePerDay; }
     public Double getTotalBudget() { return totalBudget; }
