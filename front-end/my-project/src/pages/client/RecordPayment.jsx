@@ -18,7 +18,7 @@ const PAYMENT_METHODS = [
 ];
 
 const RecordPayment = () => {
-  const [assignments, setAssignments] = useState([]);
+const [assignments, setAssignments] = useState([]);
   const [selectedAssignment, setSelectedAssignment] = useState('');
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -41,7 +41,6 @@ const RecordPayment = () => {
 
   const fetchAssignments = async () => {
     try {
-      // Fetch assignments that the client has
       const response = await api.get('/client/assignments');
       setAssignments(response.data.data || []);
     } catch {
@@ -127,22 +126,20 @@ const RecordPayment = () => {
   return (
     <DashboardLayout pageTitle="Record Payment">
       <div className="max-w-3xl mx-auto space-y-6">
-        {/* Payment Form */}
-        <div className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">💰 Record a Payment</h3>
+        <div className="bg-slate-800/80 backdrop-blur-xl rounded-xl shadow-lg border border-slate-700/80 p-6 transition-all duration-300 hover:shadow-amber-500/10">
+          <h3 className="text-xl font-semibold text-white mb-6 drop-shadow-md">💰 Record Payment</h3>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Assignment Selector */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Select Assignment</label>
               <select
                 value={selectedAssignment}
                 onChange={(e) => handleAssignmentChange(e.target.value)}
-                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all"
+                className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all hover:bg-slate-700/70"
               >
                 <option value="">Choose an assignment...</option>
                 {assignments.map((a) => (
-                  <option key={a.assignmentId || a.id} value={a.assignmentId || a.id}>
+                  <option key={a.assignmentId || a.id} value={a.assignmentId || a.id} className="bg-slate-800">
                     {a.workerName || 'Worker'} — {a.jobTitle || a.workRequestTitle || 'Job'} (Pending: {formatCurrency(a.pendingAmount || 0)})
                   </option>
                 ))}
@@ -150,27 +147,29 @@ const RecordPayment = () => {
               {errors.assignment && <p className="text-red-400 text-xs mt-1">{errors.assignment}</p>}
             </div>
 
-            {/* Assignment Info */}
             {assignment && (
-              <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+              <div className="bg-slate-700/30 backdrop-blur-sm rounded-lg p-4 border border-slate-600/50 shadow-inner">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
                   <div>
                     <p className="text-xs text-slate-400">Worker</p>
                     <p className="text-white font-medium">{assignment.workerName || '—'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-400">Total Amount</p>
-                    <p className="text-white">{formatCurrency(assignment.totalAmount || 0)}</p>
+                    <p className="text-white font-medium">{formatCurrency(assignment.totalAmount || 0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Paid</p>
+                    <p className="text-green-400 font-medium">{formatCurrency((assignment.totalAmount || 0) - (assignment.pendingAmount || 0))}</p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-400">Pending</p>
-                    <p className="text-red-400 font-semibold">{formatCurrency(assignment.pendingAmount || 0)}</p>
+                    <p className="text-amber-400 font-semibold drop-shadow-sm">{formatCurrency(assignment.pendingAmount || 0)}</p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Amount */}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">
                 Amount (₹)
@@ -188,24 +187,23 @@ const RecordPayment = () => {
                 min="1"
                 max={assignment?.pendingAmount || undefined}
                 placeholder="Enter payment amount"
-                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500"
+                className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500 hover:bg-slate-700/70"
               />
               {errors.amount && <p className="text-red-400 text-xs mt-1">{errors.amount}</p>}
             </div>
 
-            {/* Payment Method */}
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Payment Method</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">Payment Details</label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {PAYMENT_METHODS.map((method) => (
                   <button
                     key={method.value}
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, paymentMethod: method.value }))}
-                    className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer border ${
+                    className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 cursor-pointer border shadow-sm ${
                       formData.paymentMethod === method.value
-                        ? 'bg-amber-500/10 border-amber-500 text-amber-400'
-                        : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600'
+                        ? 'bg-amber-500/20 border-amber-500 text-amber-400 transform scale-105 shadow-amber-500/20'
+                        : 'bg-slate-700/50 border-slate-600/50 text-slate-300 hover:bg-slate-600/80'
                     }`}
                   >
                     {method.label}
@@ -215,7 +213,6 @@ const RecordPayment = () => {
               {errors.paymentMethod && <p className="text-red-400 text-xs mt-1">{errors.paymentMethod}</p>}
             </div>
 
-            {/* Reference Number */}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Reference Number (Optional)</label>
               <input
@@ -223,11 +220,10 @@ const RecordPayment = () => {
                 value={formData.referenceNumber}
                 onChange={(e) => setFormData((prev) => ({ ...prev, referenceNumber: e.target.value }))}
                 placeholder="Transaction ID or reference"
-                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500"
+                className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500 hover:bg-slate-700/70"
               />
             </div>
 
-            {/* Notes */}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Notes (Optional)</label>
               <textarea
@@ -235,42 +231,43 @@ const RecordPayment = () => {
                 onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
                 rows={2}
                 placeholder="Any additional notes..."
-                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500 resize-none"
+                className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500 resize-none hover:bg-slate-700/70"
               />
             </div>
 
-            <Button variant="primary" type="submit" loading={submitting} fullWidth size="lg">
+            <Button variant="primary" type="submit" loading={submitting} fullWidth size="lg" className="bg-gradient-to-r from-amber-500 to-amber-400 text-black hover:from-amber-400 hover:to-amber-300 transform hover:-translate-y-0.5 transition-all shadow-lg shadow-amber-500/25 border-0 mt-2">
               Confirm Payment
             </Button>
           </form>
         </div>
 
-        {/* Payment History */}
         {selectedAssignment && (
-          <div className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-6">
+          <div className="bg-slate-800/80 backdrop-blur-xl rounded-xl shadow-lg border border-slate-700/80 p-6 transition-all duration-300">
             <h3 className="text-lg font-semibold text-white mb-4">📜 Payment History</h3>
             {historyLoading ? (
               <LoadingSpinner text="Loading payment history..." size="sm" />
             ) : paymentHistory.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-6">No payments recorded yet for this assignment.</p>
+              <div className="bg-slate-700/30 rounded-lg p-6 border border-slate-600/50 text-center">
+                <p className="text-sm text-slate-400">No payments recorded yet for this assignment.</p>
+              </div>
             ) : (
               <div className="space-y-3">
                 {paymentHistory.map((payment) => (
                   <div
                     key={payment.id || payment.paymentId}
-                    className="flex items-center justify-between bg-slate-700/50 rounded-lg p-4 border border-slate-600"
+                    className="flex items-center justify-between bg-slate-700/50 hover:bg-slate-700/70 transition-colors rounded-lg p-4 border border-slate-600/50 shadow-sm"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-400">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center text-green-400 text-xl border border-green-500/20 shadow-inner">
                         💰
                       </div>
                       <div>
-                        <p className="text-sm text-white font-medium">{formatCurrency(payment.amount)}</p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-md text-white font-semibold drop-shadow-sm">{formatCurrency(payment.amount)}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">
                           {payment.paymentMethod || 'Cash'} • {formatDate(payment.paidAt || payment.createdAt)}
                         </p>
                         {payment.referenceNumber && (
-                          <p className="text-xs text-slate-500">Ref: {payment.referenceNumber}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">Ref: {payment.referenceNumber}</p>
                         )}
                       </div>
                     </div>

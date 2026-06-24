@@ -4,7 +4,6 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import EmptyState from '../../components/common/EmptyState';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
-import Button from '../../components/common/Button';
 import { useToast } from '../../components/common/Toast';
 import { getWorkerApplications } from '../../api/worker';
 import api from '../../api/axios';
@@ -20,7 +19,7 @@ const TABS = [
 ];
 
 const MyApplications = () => {
-  const [applications, setApplications] = useState([]);
+const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('');
   const [detailModal, setDetailModal] = useState({ open: false, application: null });
@@ -64,15 +63,15 @@ const MyApplications = () => {
   return (
     <DashboardLayout pageTitle="My Applications">
       {/* Tab Bar */}
-      <div className="bg-slate-800/50 rounded-lg p-1 inline-flex gap-1 mb-6 flex-wrap">
+      <div className="bg-slate-800/50 backdrop-blur-md rounded-lg p-1 border border-slate-700/50 inline-flex gap-1 mb-6 flex-wrap">
         {TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer ${
               activeTab === tab.key
-                ? 'bg-amber-500 text-black'
-                : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                ? 'bg-amber-500 text-black shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
             }`}
           >
             {tab.label}
@@ -94,7 +93,7 @@ const MyApplications = () => {
           {applications.map((app) => (
             <div
               key={app.applicationId || app.id}
-              className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-5 hover:border-slate-600 transition-all duration-200"
+              className="bg-slate-800/80 backdrop-blur-xl rounded-xl shadow-lg border border-slate-700/80 p-5 hover:border-amber-500/30 transition-all duration-300"
             >
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div
@@ -111,7 +110,7 @@ const MyApplications = () => {
                 <Badge status={app.status} type="application" />
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4 bg-slate-700/30 p-3 rounded-lg border border-slate-600/30">
                 <div>
                   <p className="text-xs text-slate-500">Proposed Wage</p>
                   <p className="text-sm text-amber-400 font-semibold">
@@ -137,21 +136,19 @@ const MyApplications = () => {
               <div className="flex items-center justify-between mt-4">
                 <span className="text-xs text-slate-500">{timeAgo(app.appliedAt || app.createdAt)}</span>
                 <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  <button
+                    className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 text-sm font-semibold hover:bg-slate-600/80 transition-colors duration-200 cursor-pointer"
                     onClick={() => setDetailModal({ open: true, application: app })}
                   >
                     View Details
-                  </Button>
+                  </button>
                   {app.status === 'PENDING' && (
-                    <Button
-                      variant="danger"
-                      size="sm"
+                    <button
+                      className="px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-semibold hover:bg-red-500/20 transition-colors duration-200 cursor-pointer"
                       onClick={() => setWithdrawModal({ open: true, application: app })}
                     >
                       Withdraw
-                    </Button>
+                    </button>
                   )}
                 </div>
               </div>
@@ -188,19 +185,20 @@ const MyApplications = () => {
           </p>
           <p className="text-sm text-slate-400">This action cannot be undone.</p>
           <div className="flex justify-end gap-3 pt-2">
-            <Button
-              variant="secondary"
+            <button
+              className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 font-semibold hover:bg-slate-600/80 transition-colors duration-200 cursor-pointer"
               onClick={() => setWithdrawModal({ open: false, application: null })}
             >
               Cancel
-            </Button>
-            <Button
-              variant="danger"
-              loading={withdrawing}
+            </button>
+            <button
+              className="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors duration-200 shadow-lg cursor-pointer flex items-center justify-center"
+              disabled={withdrawing}
               onClick={handleWithdraw}
             >
-              Withdraw Application
-            </Button>
+              {withdrawing && <span className="animate-spin text-white border-2 border-white border-t-transparent rounded-full w-4 h-4 mr-2 inline-block"></span>}
+              Withdraw
+            </button>
           </div>
         </div>
       </Modal>
@@ -217,7 +215,7 @@ const ApplicationDetail = ({ application }) => {
         <Badge status={app.status} type="application" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 bg-slate-700/50 rounded-lg p-4">
+      <div className="grid grid-cols-2 gap-4 bg-slate-700/30 border border-slate-600/30 rounded-lg p-4">
         <div>
           <p className="text-xs text-slate-400">Client</p>
           <p className="text-sm text-white">{app.clientName || '—'}</p>
@@ -247,7 +245,7 @@ const ApplicationDetail = ({ application }) => {
       {app.coverLetter && (
         <div>
           <p className="text-xs text-slate-400 mb-1">Cover Letter</p>
-          <p className="text-sm text-slate-300 bg-slate-700/50 rounded-lg p-3">{app.coverLetter}</p>
+          <p className="text-sm text-slate-300 bg-slate-700/50 rounded-lg p-3 border border-slate-600/50">{app.coverLetter}</p>
         </div>
       )}
 
@@ -263,7 +261,7 @@ const ApplicationDetail = ({ application }) => {
           <p className="text-xs text-slate-400 mb-1">Skills Required</p>
           <div className="flex flex-wrap gap-1.5">
             {(app.skills || app.skillsRequired || []).map((skill) => (
-              <span key={skill} className="bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded-md">{skill}</span>
+              <span key={skill} className="bg-slate-700/60 border border-slate-600/50 text-slate-300 text-xs px-2 py-0.5 rounded-md">{skill}</span>
             ))}
           </div>
         </div>

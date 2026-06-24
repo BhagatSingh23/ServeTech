@@ -6,9 +6,10 @@ import jakarta.validation.constraints.Pattern;
 // This class will be used to store data related to sending OTPs
 public class SendOtpRequest {
 
-    @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^[6-9]\\d{9}$", message = "Invalid Indian phone number")
     private String phoneNumber;
+
+    private String email;
 
     @NotBlank(message = "Purpose is required")
     @Pattern(regexp = "^(REGISTRATION|LOGIN|PASSWORD_RESET)$")
@@ -33,5 +34,13 @@ public class SendOtpRequest {
 
     public void setPurpose(String purpose) {
         this.purpose = purpose;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

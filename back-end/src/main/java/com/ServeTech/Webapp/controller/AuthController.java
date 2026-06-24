@@ -37,22 +37,26 @@ public class AuthController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid phone number")
         })
         public ResponseEntity<ApiResponse> sendOtp(@Valid @RequestBody SendOtpRequest request) {
-                String otp = otpService.generateAndSendOtp(request.getPhoneNumber(), request.getPurpose());
-
-                ApiResponse response = new ApiResponse(
-                                true,
-                                "OTP sent successfully to " + request.getPhoneNumber());
-
-                return ResponseEntity.ok(response);
+                if ((request.getEmail() != null && !request.getEmail().isEmpty()) || 
+                    (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty())) {
+                        otpService.generateAndSendOtp(request.getPhoneNumber(), request.getEmail(), request.getPurpose());
+                        return ResponseEntity.ok(new ApiResponse(true, "OTP sent successfully"));
+                } else {
+                        return ResponseEntity.badRequest().body(new ApiResponse(false, "Phone number or email is required"));
+                }
         }
 
         @PostMapping("/verify-otp")
         @Operation(summary = "Verify OTP", description = "Verifies the OTP sent to the phone number")
         public ResponseEntity<ApiResponse> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
-                boolean isValid = otpService.verifyOtp(
-                                request.getPhoneNumber(),
-                                request.getOtp(),
-                                request.getPurpose());
+                boolean isValid;
+                if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+                        isValid = otpService.verifyEmailOtp(request.getEmail(), request.getOtp(), request.getPurpose());
+                } else if (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty()) {
+                        isValid = otpService.verifyOtp(request.getPhoneNumber(), request.getOtp(), request.getPurpose());
+                } else {
+                        return ResponseEntity.badRequest().body(new ApiResponse(false, "Phone number or email is required"));
+                }
 
                 ApiResponse response = new ApiResponse(
                                 true,
@@ -90,9 +94,15 @@ public class AuthController {
         @Operation(summary = "Login Step 2 - Verify OTP", description = "Verify the OTP sent during login. Returns JWT token on success.")
         public ResponseEntity<ApiResponse> loginVerify(@RequestBody java.util.Map<String, String> body) {
                 String phoneNumber = body.get("phoneNumber");
+                String email = body.get("email");
                 String otp = body.get("otp");
 
-                AuthResponse authResponse = authService.loginStep2(phoneNumber, otp);
+                AuthResponse authResponse;
+                if (email != null && !email.isEmpty()) {
+                        authResponse = authService.loginStep2Email(email, otp);
+                } else {
+                        authResponse = authService.loginStep2(phoneNumber, otp);
+                }
 
                 ApiResponse response = new ApiResponse(
                                 true,
@@ -106,11 +116,11 @@ public class AuthController {
         @Operation(summary = "Forgot password - Send OTP", description = "Sends OTP to phone number for password reset")
         public ResponseEntity<ApiResponse> forgotPassword(@Valid @RequestBody SendOtpRequest request) {
                 request.setPurpose("PASSWORD_RESET");
-                otpService.generateAndSendOtp(request.getPhoneNumber(), request.getPurpose());
+                otpService.generateAndSendOtp(request.getPhoneNumber(), request.getEmail(), request.getPurpose());
 
                 ApiResponse response = new ApiResponse(
                                 true,
-                                "OTP sent to your phone number for password reset");
+                                "OTP sent for password reset");
 
                 return ResponseEntity.ok(response);
         }
@@ -125,6 +135,17 @@ public class AuthController {
                                 "Password reset successful");
 
                 return ResponseEntity.ok(response);
+        }
+
+        @PostMapping("/google")
+        @Operation(summary = "Google OAuth login", description = "Login or register using Google ID token")
+        public ResponseEntity<ApiResponse> googleLogin(@RequestBody java.util.Map<String, String> body) {
+                String idToken = body.get("idToken");
+                if (idToken == null || idToken.isEmpty()) {
+                        return ResponseEntity.badRequest().body(new ApiResponse(false, "idToken is required"));
+                }
+                AuthResponse authResponse = authService.googleLogin(idToken);
+                return ResponseEntity.ok(new ApiResponse(true, "Google login successful", authResponse));
         }
 
         @GetMapping("/pincode/{pincode}")

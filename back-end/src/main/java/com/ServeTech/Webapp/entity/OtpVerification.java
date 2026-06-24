@@ -19,8 +19,11 @@ public class OtpVerification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 10, name = "phone_number")
+    @Column(length = 10, name = "phone_number")
     private String phoneNumber;
+
+    @Column(length = 100)
+    private String email;
 
     @Column(nullable = false, length = 6)
     private String otp;
@@ -54,6 +57,14 @@ public class OtpVerification {
         this.purpose = purpose;
     }
 
+    public OtpVerification(String phoneNumber, String email, String otp, String purpose) {
+        this();
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.otp = otp;
+        this.purpose = purpose;
+    }
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -76,6 +87,14 @@ public class OtpVerification {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getOtp() {

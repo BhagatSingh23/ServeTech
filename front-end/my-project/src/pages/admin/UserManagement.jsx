@@ -9,13 +9,6 @@ import { useToast } from '../../components/common/Toast';
 import { getAllUsers, updateUserStatus } from '../../api/admin';
 import { formatDate } from '../../utils/formatDate';
 
-const ROLE_FILTERS = [
-  { value: '', label: 'All Roles' },
-  { value: 'WORKER', label: 'Worker' },
-  { value: 'CLIENT', label: 'Client' },
-  { value: 'ADMIN', label: 'Admin' },
-];
-
 const STATUS_FILTERS = [
   { value: '', label: 'All Status' },
   { value: 'ACTIVE', label: 'Active' },
@@ -24,9 +17,9 @@ const STATUS_FILTERS = [
 ];
 
 const ROLE_BADGES = {
-  WORKER: 'bg-blue-500/20 text-blue-400',
-  CLIENT: 'bg-green-500/20 text-green-400',
-  ADMIN: 'bg-red-500/20 text-red-400',
+  WORKER: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
+  CLIENT: 'bg-green-500/20 text-green-400 border border-green-500/30',
+  ADMIN: 'bg-red-500/20 text-red-400 border border-red-500/30',
 };
 
 const UserManagement = () => {
@@ -43,6 +36,12 @@ const UserManagement = () => {
   const [actionLoading, setActionLoading] = useState(false);
 
   const toast = useToast();
+const ROLE_FILTERS = [
+    { value: '', label: 'All Roles' },
+    { value: 'WORKER', label: 'Worker' },
+    { value: 'CLIENT', label: 'Client' },
+    { value: 'ADMIN', label: 'Admin' },
+  ];
 
   useEffect(() => {
     setPage(0);
@@ -50,11 +49,8 @@ const UserManagement = () => {
   }, [roleFilter, statusFilter]);
 
   const fetchUsers = async (reset = false) => {
-    if (reset) {
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
+    if (reset) setLoading(true);
+    else setLoadingMore(true);
 
     try {
       const currentPage = reset ? 0 : page;
@@ -68,11 +64,14 @@ const UserManagement = () => {
 
       const data = response.data.data;
       const content = data.content || data || [];
+      const filteredContent = !statusFilter 
+        ? content.filter(u => (u.accountStatus || u.status) !== 'DELETED') 
+        : content;
 
       if (reset) {
-        setUsers(content);
+        setUsers(filteredContent);
       } else {
-        setUsers((prev) => [...prev, ...content]);
+        setUsers((prev) => [...prev, ...filteredContent]);
       }
 
       setHasMore(data.totalPages ? currentPage + 1 < data.totalPages : content.length === 20);
@@ -103,7 +102,12 @@ const UserManagement = () => {
       await updateUserStatus(user.userId || user.id, newStatus);
       toast.success(`User ${newStatus.toLowerCase()} successfully`);
       setStatusModal({ open: false, user: null, newStatus: '' });
-      fetchUsers(true);
+
+      if (newStatus === 'DELETED' || newStatus === 'REJECTED') {
+        setUsers((prev) => prev.filter((u) => (u.userId || u.id) !== (user.userId || user.id)));
+      } else {
+        fetchUsers(true);
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update user status');
     } finally {
@@ -119,9 +123,8 @@ const UserManagement = () => {
   return (
     <DashboardLayout pageTitle="User Management">
       {/* Filters */}
-      <div className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-5 mb-6">
+      <div className="bg-slate-800/80 backdrop-blur-xl rounded-xl shadow-lg border border-slate-700/80 p-5 mb-6 transition-all hover:border-slate-600/80">
         <div className="flex flex-col sm:flex-row gap-4">
-          {/* Search */}
           <div className="flex-1">
             <div className="relative">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -133,34 +136,36 @@ const UserManagement = () => {
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Search by name or phone..."
-                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg pl-10 pr-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500"
+                className="w-full bg-slate-900/50 border border-slate-600/50 text-white rounded-lg pl-10 pr-4 py-2.5 focus:border-amber-400/80 focus:ring-1 focus:ring-amber-400/80 outline-none transition-all placeholder-slate-500"
               />
             </div>
           </div>
 
-          {/* Role Filter */}
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all"
+            className="bg-slate-900/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400/80 focus:ring-1 focus:ring-amber-400/80 outline-none transition-all"
           >
             {ROLE_FILTERS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
 
-          {/* Status Filter */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all"
+            className="bg-slate-900/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400/80 focus:ring-1 focus:ring-amber-400/80 outline-none transition-all"
           >
             {STATUS_FILTERS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
 
-          <Button variant="primary" onClick={handleSearch}>
+          <Button 
+            variant="primary" 
+            onClick={handleSearch}
+            className="bg-gradient-to-r from-amber-500 to-amber-400 text-black hover:from-amber-400 hover:to-amber-300 transition-all hover:scale-105 shadow-lg hover:shadow-amber-500/25 border-none"
+          >
             Search
           </Button>
         </div>
@@ -177,53 +182,54 @@ const UserManagement = () => {
         />
       ) : (
         <>
-          <div className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden">
+          <div className="bg-slate-800/80 backdrop-blur-xl rounded-xl shadow-lg border border-slate-700/80 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-700">
-                    <th className="text-left px-5 py-3 text-slate-400 text-xs uppercase font-medium">Name</th>
-                    <th className="text-left px-5 py-3 text-slate-400 text-xs uppercase font-medium">Phone</th>
-                    <th className="text-left px-5 py-3 text-slate-400 text-xs uppercase font-medium">Role</th>
-                    <th className="text-left px-5 py-3 text-slate-400 text-xs uppercase font-medium">Status</th>
-                    <th className="text-left px-5 py-3 text-slate-400 text-xs uppercase font-medium">Joined</th>
-                    <th className="text-left px-5 py-3 text-slate-400 text-xs uppercase font-medium">Actions</th>
+                  <tr className="border-b border-slate-700/80 bg-slate-900/20">
+                    <th className="text-left px-5 py-4 text-slate-400 text-xs uppercase font-semibold tracking-wider">Name</th>
+                    <th className="text-left px-5 py-4 text-slate-400 text-xs uppercase font-semibold tracking-wider">Phone</th>
+                    <th className="text-left px-5 py-4 text-slate-400 text-xs uppercase font-semibold tracking-wider">Role</th>
+                    <th className="text-left px-5 py-4 text-slate-400 text-xs uppercase font-semibold tracking-wider">Status</th>
+                    <th className="text-left px-5 py-4 text-slate-400 text-xs uppercase font-semibold tracking-wider">Date</th>
+                    <th className="text-left px-5 py-4 text-slate-400 text-xs uppercase font-semibold tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-700">
+                <tbody className="divide-y divide-slate-700/50">
                   {users.map((user) => {
                     const userId = user.userId || user.id;
                     return (
-                      <tr key={userId} className="hover:bg-slate-700/50 transition-colors">
-                        <td className="px-5 py-3">
+                      <tr key={userId} className="hover:bg-slate-700/30 transition-colors group">
+                        <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-amber-400 text-xs font-semibold">
+                            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 flex items-center justify-center text-amber-400 text-sm font-bold shadow-inner group-hover:border-amber-500/50 transition-colors">
                               {(user.name || user.firstName || 'U').charAt(0)}
                             </div>
-                            <p className="text-sm text-white font-medium">
+                            <p className="text-sm text-white font-medium group-hover:text-amber-400 transition-colors">
                               {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || '—'}
                             </p>
                           </div>
                         </td>
-                        <td className="px-5 py-3 text-sm text-slate-300">{user.phone || '—'}</td>
-                        <td className="px-5 py-3">
+                        <td className="px-5 py-4 text-sm text-slate-300">{user.phone || '—'}</td>
+                        <td className="px-5 py-4">
                           <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${ROLE_BADGES[user.role] || 'bg-slate-500/20 text-slate-400'}`}>
-                            {user.role}
+                            {user.role === 'WORKER' ? ('Worker') : user.role === 'CLIENT' ? ('Client') : user.role === 'ADMIN' ? ('Admin') : user.role}
                           </span>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="px-5 py-4">
                           <Badge status={user.accountStatus || user.status || 'ACTIVE'} type="account" />
                         </td>
-                        <td className="px-5 py-3 text-sm text-slate-400">
+                        <td className="px-5 py-4 text-sm text-slate-400">
                           {formatDate(user.createdAt || user.joinedAt)}
                         </td>
-                        <td className="px-5 py-3">
-                          <div className="flex gap-1.5">
+                        <td className="px-5 py-4">
+                          <div className="flex gap-2">
                             {(user.accountStatus || user.status) !== 'ACTIVE' && (
                               <Button
                                 variant="primary"
                                 size="sm"
                                 onClick={() => setStatusModal({ open: true, user, newStatus: 'ACTIVE' })}
+                                className="bg-gradient-to-r from-green-500 to-emerald-400 text-black border-none hover:scale-105 transition-transform"
                               >
                                 Activate
                               </Button>
@@ -233,6 +239,7 @@ const UserManagement = () => {
                                 variant="secondary"
                                 size="sm"
                                 onClick={() => setStatusModal({ open: true, user, newStatus: 'SUSPENDED' })}
+                                className="bg-slate-700/50 hover:bg-slate-600 text-white border-slate-600 hover:border-slate-500 transition-all"
                               >
                                 Suspend
                               </Button>
@@ -242,6 +249,7 @@ const UserManagement = () => {
                                 variant="danger"
                                 size="sm"
                                 onClick={() => setStatusModal({ open: true, user, newStatus: 'DELETED' })}
+                                className="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 transition-all"
                               >
                                 Delete
                               </Button>
@@ -256,10 +264,14 @@ const UserManagement = () => {
             </div>
           </div>
 
-          {/* Load More */}
           {hasMore && (
-            <div className="flex justify-center mt-6">
-              <Button variant="secondary" loading={loadingMore} onClick={loadMore}>
+            <div className="flex justify-center mt-8">
+              <Button 
+                variant="secondary" 
+                loading={loadingMore} 
+                onClick={loadMore}
+                className="bg-slate-800/80 backdrop-blur-sm border-slate-700 hover:bg-slate-700 transition-all rounded-full px-8"
+              >
                 Load More
               </Button>
             </div>
@@ -273,32 +285,37 @@ const UserManagement = () => {
         onClose={() => setStatusModal({ open: false, user: null, newStatus: '' })}
         title={`${statusModal.newStatus === 'ACTIVE' ? 'Activate' : statusModal.newStatus === 'SUSPENDED' ? 'Suspend' : 'Delete'} User`}
       >
-        <div className="space-y-4">
-          <p className="text-slate-300">
+        <div className="space-y-5 p-2">
+          <p className="text-slate-300 text-lg">
             Are you sure you want to{' '}
             <span className={
-              statusModal.newStatus === 'ACTIVE' ? 'text-green-400' :
-              statusModal.newStatus === 'SUSPENDED' ? 'text-amber-400' : 'text-red-400'
+              statusModal.newStatus === 'ACTIVE' ? 'text-green-400 font-semibold' :
+              statusModal.newStatus === 'SUSPENDED' ? 'text-amber-400 font-semibold' : 'text-red-400 font-semibold'
             }>
               {statusModal.newStatus?.toLowerCase()}
             </span>{' '}
             the user{' '}
-            <span className="text-white font-semibold">
+            <span className="text-white font-bold">
               {statusModal.user?.name || `${statusModal.user?.firstName || ''} ${statusModal.user?.lastName || ''}`.trim()}
             </span>
             ?
           </p>
           {statusModal.newStatus === 'DELETED' && (
-            <p className="text-sm text-red-400">This action may not be reversible.</p>
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+              <p className="text-sm text-red-400 flex items-center gap-2">
+                <span className="text-lg">⚠️</span> This action may not be reversible.
+              </p>
+            </div>
           )}
-          <div className="flex justify-end gap-3 pt-2">
-            <Button variant="secondary" onClick={() => setStatusModal({ open: false, user: null, newStatus: '' })}>
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-700/50">
+            <Button variant="ghost" onClick={() => setStatusModal({ open: false, user: null, newStatus: '' })}>
               Cancel
             </Button>
             <Button
               variant={statusModal.newStatus === 'ACTIVE' ? 'primary' : 'danger'}
               loading={actionLoading}
               onClick={handleStatusChange}
+              className={statusModal.newStatus === 'ACTIVE' ? "bg-gradient-to-r from-green-500 to-emerald-400 text-black border-none" : ""}
             >
               Confirm
             </Button>

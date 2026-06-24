@@ -20,7 +20,7 @@ const TABS = [
 ];
 
 const MyJobs = () => {
-  const [jobs, setJobs] = useState([]);
+const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('');
   const [deleteModal, setDeleteModal] = useState({ open: false, job: null });
@@ -88,70 +88,67 @@ const MyJobs = () => {
 
   return (
     <DashboardLayout pageTitle="My Jobs">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        {/* Tab Bar */}
-        <div className="bg-slate-800/50 rounded-lg p-1 inline-flex gap-1 flex-wrap">
+        <div className="bg-slate-800/80 backdrop-blur-md rounded-lg p-1.5 inline-flex gap-1 flex-wrap border border-slate-700/80 shadow-lg">
           {TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer ${
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 cursor-pointer ${
                 activeTab === tab.key
-                  ? 'bg-amber-500 text-black'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-black shadow-md transform scale-105'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
               }`}
             >
               {tab.label}
             </button>
           ))}
         </div>
-        <Button variant="primary" onClick={() => navigate('/client/post-job')}>
-          + Post New Job
+        <Button variant="primary" onClick={() => navigate('/client/post-job')} className="bg-gradient-to-r from-amber-500 to-amber-400 text-black hover:from-amber-400 hover:to-amber-300 shadow-lg shadow-amber-500/20 transform hover:-translate-y-0.5 transition-all border-0">
+          + Post a New Job
         </Button>
       </div>
 
-      {/* Jobs List */}
       {loading ? (
         <LoadingSpinner text="Loading jobs..." />
       ) : jobs.length === 0 ? (
-        <EmptyState
-          icon="💼"
-          title="No jobs found"
-          description={activeTab ? `No ${activeTab.toLowerCase().replace('_', ' ')} jobs.` : 'You haven\'t posted any jobs yet.'}
-          actionLabel="Post a Job"
-          onAction={() => navigate('/client/post-job')}
-        />
+        <div className="bg-slate-800/80 backdrop-blur-xl rounded-xl border border-slate-700/80 shadow-xl p-8 transition-all hover:border-slate-600/50">
+          <EmptyState
+            icon="💼"
+            title="No jobs posted yet"
+            description={activeTab ? `No ${activeTab.toLowerCase().replace('_', ' ')} jobs.` : "You haven't posted any jobs yet."}
+            actionLabel="Post a New Job"
+            onAction={() => navigate('/client/post-job')}
+          />
+        </div>
       ) : (
         <div className="space-y-4">
           {jobs.map((job) => (
             <div
               key={job.id || job.workRequestId}
-              className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-5 hover:border-slate-600 transition-all duration-200"
+              className="bg-slate-800/80 backdrop-blur-xl rounded-xl shadow-lg border border-slate-700/80 p-5 hover:border-amber-500/50 hover:shadow-amber-500/10 transition-all duration-300"
             >
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
                 <div
-                  className="flex-1 min-w-0 cursor-pointer"
-                  onClick={() => navigate(`/client/jobs/${job.id || job.workRequestId}/applicants`)}
+                  className="flex-1 min-w-0 cursor-pointer group"
+                  onClick={() => navigate(`/client/jobs/${job.id}/applicants`)}
                 >
-                  <h3 className="text-white font-semibold text-lg hover:text-amber-400 transition-colors truncate">
+                  <h3 className="text-white font-semibold text-lg group-hover:text-amber-400 transition-colors truncate drop-shadow-md">
                     {job.title}
                   </h3>
                 </div>
                 <Badge status={job.status} type="workRequest" />
               </div>
 
-              {/* Skills Tags */}
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {(job.requiredSkills || job.skills || []).map((skill) => (
-                  <span key={skill} className="bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded-md">
+                  <span key={skill} className="bg-slate-700/50 backdrop-blur-sm text-slate-300 text-xs px-2.5 py-1 rounded-md border border-slate-600/50 shadow-sm">
                     {skill}
                   </span>
                 ))}
               </div>
 
-              {/* Details Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 text-sm">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 text-sm bg-slate-900/40 rounded-lg p-3">
                 <div>
                   <p className="text-xs text-slate-500">Workers</p>
                   <p className="text-white">
@@ -160,7 +157,7 @@ const MyJobs = () => {
                 </div>
                 <div>
                   <p className="text-xs text-slate-500">Wage/Day</p>
-                  <p className="text-amber-400 font-semibold">{formatCurrency(job.offeredWagePerDay)}</p>
+                  <p className="text-amber-400 font-semibold drop-shadow-sm">{formatCurrency(job.offeredWagePerDay)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-500">Start</p>
@@ -172,29 +169,29 @@ const MyJobs = () => {
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center justify-between pt-3 border-t border-slate-700">
+              <div className="flex items-center justify-between pt-3 border-t border-slate-700/80">
                 <span className="text-xs text-slate-500">Posted {timeAgo(job.createdAt)}</span>
                 <div className="flex gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigate(`/client/jobs/${job.id || job.workRequestId}/applicants`)}
+                    onClick={() => navigate(`/client/jobs/${job.id}/applicants`)}
+                    className="hover:bg-slate-700/50 text-slate-300"
                   >
-                    View Applicants
+                    View Applicants {job.applicationCount > 0 ? `(${job.applicationCount})` : ''}
                   </Button>
                   {canEdit(job.status) && (
-                    <Button variant="secondary" size="sm" onClick={() => navigate(`/client/post-job?edit=${job.id || job.workRequestId}`)}>
+                    <Button variant="secondary" size="sm" onClick={() => navigate(`/client/post-job?edit=${job.id || job.workRequestId}`)} className="hover:bg-slate-700/80 border-slate-600">
                       Edit
                     </Button>
                   )}
                   {canClose(job.status) && (
-                    <Button variant="secondary" size="sm" onClick={() => setCloseModal({ open: true, job })}>
+                    <Button variant="secondary" size="sm" onClick={() => setCloseModal({ open: true, job })} className="hover:bg-slate-700/80 border-slate-600">
                       Close
                     </Button>
                   )}
                   {canDelete(job.status) && (
-                    <Button variant="danger" size="sm" onClick={() => setDeleteModal({ open: true, job })}>
+                    <Button variant="danger" size="sm" onClick={() => setDeleteModal({ open: true, job })} className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border-red-500/50">
                       Delete
                     </Button>
                   )}
@@ -205,7 +202,6 @@ const MyJobs = () => {
         </div>
       )}
 
-      {/* Delete Confirmation */}
       <Modal
         isOpen={deleteModal.open}
         onClose={() => setDeleteModal({ open: false, job: null })}
@@ -228,7 +224,6 @@ const MyJobs = () => {
         </div>
       </Modal>
 
-      {/* Close Confirmation */}
       <Modal
         isOpen={closeModal.open}
         onClose={() => setCloseModal({ open: false, job: null })}

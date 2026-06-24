@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/common/DashboardLayout';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import EmptyState from '../../components/common/EmptyState';
-import Button from '../../components/common/Button';
 import { useToast } from '../../components/common/Toast';
 import { browseJobs, getRecommendedJobs } from '../../api/jobs';
 import { getWorkerApplications } from '../../api/worker';
@@ -16,7 +15,7 @@ const SKILLS = [
 ];
 
 const BrowseJobs = () => {
-  const [jobs, setJobs] = useState([]);
+const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [appliedJobIds, setAppliedJobIds] = useState(new Set());
   const [expandedJobId, setExpandedJobId] = useState(null);
@@ -43,7 +42,9 @@ const BrowseJobs = () => {
       ]);
       setJobs(jobsRes.data.data || []);
       const appliedIds = new Set(
-        (appsRes.data.data || []).map((app) => app.workRequestId || app.jobId)
+        (appsRes.data.data || [])
+          .filter(app => app.status !== 'WITHDRAWN')
+          .map((app) => app.workRequestId || app.jobId)
       );
       setAppliedJobIds(appliedIds);
     } catch {
@@ -110,7 +111,7 @@ const BrowseJobs = () => {
   return (
     <DashboardLayout pageTitle="Browse Jobs">
       {/* Filters */}
-      <div className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-5 mb-6">
+      <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700/80 rounded-xl shadow-lg p-5 mb-6">
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
           <div className="flex-1">
             <div className="relative">
@@ -122,7 +123,7 @@ const BrowseJobs = () => {
                 value={searchPincode}
                 onChange={(e) => setSearchPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="Filter by pincode..."
-                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg pl-10 pr-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500"
+                className="w-full bg-slate-700/50 backdrop-blur-sm border border-slate-600/80 text-white rounded-lg pl-10 pr-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500"
               />
             </div>
           </div>
@@ -134,15 +135,15 @@ const BrowseJobs = () => {
               </div>
               <span className="text-sm text-slate-300">Urgent Only</span>
             </label>
-            <Button variant="primary" size="sm" onClick={handleSearch}>Search</Button>
-            <Button variant="ghost" size="sm" onClick={clearFilters}>Clear</Button>
+            <button onClick={handleSearch} className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-400 text-black font-semibold hover:scale-105 transition-transform duration-200 shadow-md">Search</button>
+            <button onClick={clearFilters} className="px-4 py-2 rounded-lg bg-slate-700/50 text-slate-300 font-semibold hover:bg-slate-600 transition-colors duration-200">Cancel</button>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {SKILLS.map((skill) => (
             <button key={skill} onClick={() => toggleSkill(skill)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
-                selectedSkills.includes(skill) ? 'bg-amber-500 text-black' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                selectedSkills.includes(skill) ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20' : 'bg-slate-700/50 text-slate-300 border border-slate-600/50 hover:bg-slate-600/80'
               }`}>{skill}</button>
           ))}
         </div>
@@ -163,13 +164,13 @@ const BrowseJobs = () => {
             const totalBudget = job.totalBudget || (job.offeredWagePerDay * (job.estimatedDurationDays || 1) * (job.workersNeeded || 1));
 
             return (
-              <div key={jobId} className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-5 hover:border-slate-600 transition-all duration-200 flex flex-col">
+              <div key={jobId} className="bg-slate-800/80 backdrop-blur-xl border border-slate-700/80 rounded-xl shadow-lg p-5 hover:border-amber-500/30 transition-all duration-300 flex flex-col group">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-white font-semibold text-base leading-tight pr-2">{job.title}</h3>
+                  <h3 className="text-white font-semibold text-base leading-tight pr-2 group-hover:text-amber-400 transition-colors">{job.title}</h3>
                   <div className="flex gap-1.5 flex-shrink-0">
                     {job.isUrgent && (
-                      <span className="bg-red-500/20 text-red-400 text-xs font-medium px-2 py-0.5 rounded-full">Urgent</span>
+                      <span className="bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-medium px-2 py-0.5 rounded-full">Urgent</span>
                     )}
                   </div>
                 </div>
@@ -181,18 +182,18 @@ const BrowseJobs = () => {
                 {/* Skills */}
                 <div className="flex flex-wrap gap-1.5 mb-3">
                   {(job.requiredSkills || job.skills || []).map((skill) => (
-                    <span key={skill} className="bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded-md">{skill}</span>
+                    <span key={skill} className="bg-slate-700/60 border border-slate-600/50 text-slate-300 text-xs px-2 py-0.5 rounded-md">{skill}</span>
                   ))}
                 </div>
 
                 {/* Wage & Key Info */}
-                <div className="bg-slate-700/40 rounded-lg p-3 mb-3 border border-slate-600/50">
+                <div className="bg-slate-700/30 rounded-lg p-3 mb-3 border border-slate-600/30 backdrop-blur-sm">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-slate-400">Offered Wage</span>
                     {job.isNegotiable !== false ? (
-                      <span className="bg-green-500/15 text-green-400 text-xs font-medium px-2 py-0.5 rounded-full">Negotiable</span>
+                      <span className="bg-green-500/15 border border-green-500/20 text-green-400 text-xs font-medium px-2 py-0.5 rounded-full">Negotiable</span>
                     ) : (
-                      <span className="bg-slate-600/50 text-slate-400 text-xs font-medium px-2 py-0.5 rounded-full">Fixed</span>
+                      <span className="bg-slate-600/30 border border-slate-500/20 text-slate-400 text-xs font-medium px-2 py-0.5 rounded-full">Fixed</span>
                     )}
                   </div>
                   <p className="text-lg font-bold text-amber-400">{formatCurrency(job.offeredWagePerDay)}<span className="text-xs font-normal text-slate-400">/day</span></p>
@@ -201,10 +202,10 @@ const BrowseJobs = () => {
 
                 {/* Quick Info Grid */}
                 <div className="grid grid-cols-2 gap-2 mb-3 text-xs text-slate-400">
-                  <div className="flex items-center gap-1"><span>📅</span><span>{job.estimatedDurationDays || '—'} days</span></div>
-                  <div className="flex items-center gap-1"><span>👷</span><span>{job.workersNeeded || 1} needed</span></div>
-                  <div className="flex items-center gap-1"><span>📍</span><span>{job.pincode || '—'}</span></div>
-                  <div className="flex items-center gap-1"><span>🕐</span><span>{timeAgo(job.createdAt)}</span></div>
+                  <div className="flex items-center gap-1"><span className="text-slate-500">📅</span><span>{job.estimatedDurationDays || '—'} days</span></div>
+                  <div className="flex items-center gap-1"><span className="text-slate-500">👷</span><span>{job.workersNeeded || 1} needed</span></div>
+                  <div className="flex items-center gap-1"><span className="text-slate-500">📍</span><span>{job.pincode || '—'}</span></div>
+                  <div className="flex items-center gap-1"><span className="text-slate-500">🕐</span><span>{timeAgo(job.createdAt)}</span></div>
                 </div>
 
                 {/* Expandable Details */}
@@ -216,7 +217,7 @@ const BrowseJobs = () => {
                 </button>
 
                 {isExpanded && (
-                  <div className="bg-slate-700/30 rounded-lg p-3 mb-3 border border-slate-600/50 space-y-2 text-sm animate-[fadeIn_0.2s_ease-in]">
+                  <div className="bg-slate-700/20 rounded-lg p-3 mb-3 border border-slate-600/30 space-y-2 text-sm animate-[fadeIn_0.2s_ease-in]">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <p className="text-xs text-slate-500">Client</p>
@@ -259,8 +260,12 @@ const BrowseJobs = () => {
                 {/* Action */}
                 <div className="mt-auto">
                   {isApplied ? (
-                    <div className="w-full bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-medium rounded-lg px-4 py-2.5 text-center">
-                      ✓ Applied
+                    <div className="w-full bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-medium rounded-lg px-4 py-2.5 text-center flex items-center justify-center gap-2">
+                      <span>✓</span> Applied
+                    </div>
+                  ) : job.canApply === false ? (
+                    <div className="w-full bg-slate-700/50 border border-slate-600/50 text-slate-400 text-sm font-medium rounded-lg px-4 py-2.5 text-center cursor-not-allowed" title="You do not have the required skills for this job">
+                      Skills Mismatch
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -273,13 +278,18 @@ const BrowseJobs = () => {
                             onChange={(e) => setCounterWages((prev) => ({ ...prev, [jobId]: e.target.value }))}
                             placeholder={`${job.offeredWagePerDay || 'offered wage'}`}
                             min="1"
-                            className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500"
+                            className="w-full bg-slate-700/50 backdrop-blur-sm border border-slate-600/80 text-white rounded-lg px-3 py-2 text-sm focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500"
                           />
                         </div>
                       )}
-                      <Button variant="primary" fullWidth onClick={() => handleApply(job)} loading={isApplying}>
+                      <button 
+                        onClick={() => handleApply(job)} 
+                        disabled={isApplying}
+                        className="w-full py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-400 text-black font-semibold hover:scale-[1.02] transition-transform duration-200 shadow-md flex items-center justify-center gap-2 disabled:opacity-70 disabled:hover:scale-100 cursor-pointer"
+                      >
+                        {isApplying && <span className="animate-spin text-black border-2 border-black border-t-transparent rounded-full w-4 h-4 inline-block"></span>}
                         Apply
-                      </Button>
+                      </button>
                     </div>
                   )}
                 </div>

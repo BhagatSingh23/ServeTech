@@ -2,10 +2,15 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/common/Toast';
-import { getLocationByPincode, sendOtp, verifyOtp } from '../../api/auth';
+import { getLocationByPincode, sendOtp, verifyOtp, googleLogin as googleLoginApi } from '../../api/auth';
 import Button from '../../components/common/Button';
 
-const STEPS = ['Role', 'Phone & OTP', 'Personal Info', 'Location'];
+const STEPS = [
+  { id: 'role', label: 'Role' },
+  { id: 'contactInfo', label: 'Contact Info' },
+  { id: 'personalInfo', label: 'Personal Info' },
+  { id: 'location', label: 'Location' }
+];
 
 const GENDER_OPTIONS = [
   { value: 'MALE', label: 'Male' },
@@ -29,6 +34,7 @@ const Register = () => {
     firstName: '',
     lastName: '',
     phone: '',
+    email: '',
     password: '',
     confirmPassword: '',
     dateOfBirth: '',
@@ -41,9 +47,12 @@ const Register = () => {
 
   const [errors, setErrors] = useState({});
 
-  const { register } = useAuth();
-  const toast = useToast();
+  const { register, login } = useAuth();
+const toast = useToast();
   const navigate = useNavigate();
+
+  // Google Script Load logic removed as requested
+
 
   // OTP countdown timer
   useEffect(() => {
@@ -69,7 +78,19 @@ const Register = () => {
 
   const validateStep2 = () => {
     const errs = {};
-    if (!/^[6-9]\d{9}$/.test(formData.phone)) errs.phone = 'Enter a valid 10-digit Indian phone number';
+    const isPhoneValid = /^[6-9]\d{9}$/.test(formData.phone);
+    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+    
+    if (!formData.phone) {
+      errs.phone = 'Phone number is required';
+    } else if (!isPhoneValid) {
+      errs.phone = 'Invalid Phone Number';
+    }
+    
+    if (formData.email && !isEmailValid) {
+      errs.email = 'Invalid Email Address';
+    }
+
     if (!otpVerified) errs.otp = 'Please verify OTP first';
     if (Object.keys(errs).length) { setErrors(errs); return false; }
     return true;
@@ -108,16 +129,27 @@ const Register = () => {
 
   // === OTP handlers ===
   const handleSendOtp = async () => {
-    if (!/^[6-9]\d{9}$/.test(formData.phone)) {
-      setErrors({ phone: 'Enter a valid 10-digit Indian phone number' });
+    if (!formData.phone) {
+      setErrors({ phone: 'Phone number is required' });
       return;
     }
+    const isPhoneValid = formData.phone ? /^[6-9]\d{9}$/.test(formData.phone) : true;
+    const isEmailValid = formData.email ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) : true;
+
+    if (!isPhoneValid) setErrors((prev) => ({ ...prev, phone: 'Invalid Phone Number' }));
+    if (!isEmailValid) setErrors((prev) => ({ ...prev, email: 'Invalid Email Address' }));
+    if (!isPhoneValid || !isEmailValid) return;
+
     setLoading(true);
     try {
-      await sendOtp({ phoneNumber: formData.phone, purpose: 'REGISTRATION' });
+      const payload = { purpose: 'REGISTRATION' };
+      if (formData.phone) payload.phoneNumber = formData.phone;
+      if (formData.email) payload.email = formData.email;
+      
+      await sendOtp(payload);
       setOtpSent(true);
       setOtpTimer(120);
-      toast.success('OTP sent! Check your Spring Boot console.');
+      toast.success('OTP Sent!');
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to send OTP');
@@ -129,14 +161,18 @@ const Register = () => {
   const handleVerifyOtp = async () => {
     const otpString = otp.join('');
     if (otpString.length !== 6) {
-      setErrors({ otp: 'Enter the complete 6-digit OTP' });
+      setErrors({ otp: 'Enter 6-digit OTP' });
       return;
     }
     setLoading(true);
     try {
-      await verifyOtp({ phoneNumber: formData.phone, otp: otpString, purpose: 'REGISTRATION' });
+      const payload = { otp: otpString, purpose: 'REGISTRATION' };
+      if (formData.phone) payload.phoneNumber = formData.phone;
+      if (formData.email) payload.email = formData.email;
+
+      await verifyOtp(payload);
       setOtpVerified(true);
-      toast.success('Phone verified successfully!');
+      toast.success('Verified Successfully ✓');
     } catch (err) {
       setErrors({ otp: err.response?.data?.message || 'Invalid OTP' });
     } finally {
@@ -202,7 +238,6 @@ const Register = () => {
       const payload = {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
-        phoneNumber: formData.phone,
         password: formData.password,
         dateOfBirth: formData.dateOfBirth,
         gender: formData.gender,
@@ -213,6 +248,9 @@ const Register = () => {
         state: formData.state,
         otp: otp.join(''),
       };
+      
+      if (formData.phone) payload.phoneNumber = formData.phone;
+      if (formData.email) payload.email = formData.email;
 
       const result = await register(payload);
       if (result.success) {
@@ -230,15 +268,17 @@ const Register = () => {
     }
   };
 
+
+
   // === Step Indicator ===
   const renderStepIndicator = () => (
     <div className="flex items-center justify-center gap-1.5 mb-8">
-      {STEPS.map((label, index) => {
+      {STEPS.map((stepItem, index) => {
         const stepNum = index + 1;
         const isActive = stepNum === step;
         const isCompleted = stepNum < step;
         return (
-          <div key={label} className="flex items-center gap-1.5">
+          <div key={stepItem.id} className="flex items-center gap-1.5">
             <div className="flex flex-col items-center">
               <div className={`flex items-center justify-center h-9 w-9 rounded-full text-xs font-bold transition-all duration-300 ${
                 isActive ? 'bg-amber-500 text-black scale-110 shadow-lg shadow-amber-500/30' :
@@ -247,7 +287,7 @@ const Register = () => {
                 {isCompleted ? '✓' : stepNum}
               </div>
               <span className={`text-[10px] mt-1 font-medium ${isActive ? 'text-amber-400' : isCompleted ? 'text-green-400' : 'text-slate-500'}`}>
-                {label}
+                {stepItem.label}
               </span>
             </div>
             {index < STEPS.length - 1 && (
@@ -261,8 +301,11 @@ const Register = () => {
 
   // === Step 1: Choose Role ===
   const renderStep1 = () => (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-white text-center mb-6">Choose Your Role</h2>
+    <div className="space-y-4 animate-[fadeIn_0.3s_ease-in]">
+      <h2 className="text-2xl font-bold text-white text-center mb-6">Choose Your Role</h2>
+      
+      {/* Google Sign-in removed */}
+
       <div className="grid grid-cols-2 gap-4">
         {[
           { value: 'WORKER', label: 'Worker', desc: 'Find jobs & earn money', icon: '🔧' },
@@ -272,80 +315,109 @@ const Register = () => {
             key={r.value}
             type="button"
             onClick={() => updateField('role', r.value)}
-            className={`p-5 rounded-xl border-2 text-center transition-all duration-200 cursor-pointer ${
+            className={`p-5 rounded-2xl border-2 text-center transition-all duration-300 cursor-pointer group ${
               formData.role === r.value
-                ? 'border-amber-400 bg-amber-500/10 shadow-lg shadow-amber-500/10'
-                : 'border-slate-600 bg-slate-700/30 hover:border-slate-500 hover:bg-slate-700/50'
+                ? 'border-amber-400 bg-amber-500/10 shadow-lg shadow-amber-500/20 translate-y-[-2px]'
+                : 'border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:bg-slate-700/50 hover:translate-y-[-2px]'
             }`}
           >
-            <div className="text-3xl mb-2">{r.icon}</div>
-            <h3 className={`font-bold text-lg ${formData.role === r.value ? 'text-amber-400' : 'text-white'}`}>{r.label}</h3>
-            <p className="text-xs text-slate-400 mt-1">{r.desc}</p>
+            <div className={`text-4xl mb-3 transition-transform duration-300 ${formData.role === r.value ? 'scale-110' : 'group-hover:scale-110'}`}>
+              {r.icon}
+            </div>
+            <h3 className={`font-bold text-lg mb-1 ${formData.role === r.value ? 'text-amber-400' : 'text-white'}`}>{r.label}</h3>
+            <p className="text-xs text-slate-400">{r.desc}</p>
           </button>
         ))}
       </div>
-      {errors.role && <p className="text-red-400 text-xs text-center">{errors.role}</p>}
+      {errors.role && <p className="text-red-400 text-sm text-center mt-2 bg-red-500/10 py-2 rounded-lg border border-red-500/20">{errors.role}</p>}
     </div>
   );
 
-  // === Step 2: Phone & OTP ===
+  // === Step 2: Phone & Email OTP ===
   const renderStep2 = () => (
-    <div className="space-y-5">
-      <h2 className="text-xl font-semibold text-white text-center mb-6">Verify Your Phone</h2>
+    <div className="space-y-5 animate-[fadeIn_0.3s_ease-in]">
+      <h2 className="text-2xl font-bold text-white text-center mb-6">Verify Your Contact</h2>
+      <p className="text-sm text-slate-400 text-center mb-6">Provide your phone number</p>
 
       {/* Phone Input */}
       <div>
         <label className="block text-sm font-medium text-slate-300 mb-1.5">Phone Number</label>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">+91</span>
-            <input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => {
-                updateField('phone', e.target.value.replace(/\D/g, '').slice(0, 10));
-                setOtpSent(false);
-                setOtpVerified(false);
-                setOtp(['', '', '', '', '', '']);
-              }}
-              placeholder="10-digit number"
-              className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl pl-12 pr-4 py-3 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500"
-              maxLength={10}
-              disabled={otpVerified}
-            />
-          </div>
-          {!otpVerified && (
-            <Button
-              type="button"
-              variant={otpSent ? 'secondary' : 'primary'}
-              onClick={handleSendOtp}
-              loading={loading && !otpSent}
-              disabled={otpTimer > 0 && otpSent}
-            >
-              {otpSent ? (otpTimer > 0 ? `${otpTimer}s` : 'Resend') : 'Send OTP'}
-            </Button>
-          )}
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">+91</span>
+          <input
+            type="tel"
+            value={formData.phone}
+            onChange={(e) => {
+              updateField('phone', e.target.value.replace(/\D/g, '').slice(0, 10));
+              setOtpSent(false);
+              setOtpVerified(false);
+              setOtp(['', '', '', '', '', '']);
+            }}
+            placeholder="10-digit number"
+            className="w-full bg-slate-950/60 border border-slate-700 text-white rounded-xl pl-12 pr-4 py-3 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500"
+            maxLength={10}
+            disabled={otpVerified || otpSent}
+          />
         </div>
-        {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
+        {errors.phone && <p className="text-red-400 text-xs mt-1.5 pl-1">{errors.phone}</p>}
       </div>
 
-      {/* OTP Verified Badge */}
-      {otpVerified && (
-        <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3">
-          <svg className="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className="text-green-400 text-sm font-medium">Phone number verified ✓</span>
+      {/* Email Input */}
+      <div>
+        <label className="block text-sm font-medium text-slate-300 mb-1.5">Email (optional)</label>
+        <div className="relative">
+          <input
+            type="email"
+            value={formData.email}
+            onChange={(e) => {
+              updateField('email', e.target.value);
+              setOtpSent(false);
+              setOtpVerified(false);
+              setOtp(['', '', '', '', '', '']);
+            }}
+            placeholder="Email Address"
+            className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl px-4 py-3.5 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500"
+            disabled={otpVerified || otpSent}
+          />
+        </div>
+        {errors.email && <p className="text-red-400 text-xs mt-1.5 pl-1">{errors.email}</p>}
+        {errors.contact && <p className="text-red-400 text-xs mt-1.5 pl-1 bg-red-500/10 p-2 rounded">{errors.contact}</p>}
+      </div>
+
+      {!otpVerified && (
+        <div className="pt-2">
+          <Button
+            type="button"
+            variant={otpSent ? 'secondary' : 'primary'}
+            fullWidth
+            onClick={handleSendOtp}
+            loading={loading && !otpSent}
+            disabled={otpTimer > 0 && otpSent}
+          >
+            {otpSent ? (otpTimer > 0 ? `Resend in ${otpTimer}s` : 'Resend') : 'Send OTP'}
+          </Button>
         </div>
       )}
 
-      {/* OTP Input (only show if sent and not verified) */}
+      {/* OTP Verified Badge */}
+      {otpVerified && (
+        <div className="flex items-center gap-3 bg-green-500/10 border border-green-500/30 rounded-xl p-4 animate-[fadeIn_0.3s_ease-out]">
+          <div className="h-8 w-8 rounded-full bg-green-500/20 flex items-center justify-center">
+            <svg className="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <span className="text-green-400 font-medium">Verified Successfully ✓</span>
+        </div>
+      )}
+
+      {/* OTP Input */}
       {otpSent && !otpVerified && (
-        <div className="space-y-4">
+        <div className="space-y-5 bg-slate-800/40 border border-slate-700 rounded-xl p-6 animate-[slideDown_0.3s_ease-out]">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2 text-center">Enter 6-digit OTP</label>
-            <p className="text-xs text-slate-500 text-center mb-3">Check your Spring Boot console for the OTP code</p>
-            <div className="flex justify-center gap-2.5">
+            <label className="block text-sm font-medium text-white mb-2 text-center">Enter 6-digit OTP</label>
+            <p className="text-xs text-amber-400/80 text-center mb-4">Check your console for the OTP code</p>
+            <div className="flex justify-center gap-3">
               {otp.map((digit, idx) => (
                 <input
                   key={idx}
@@ -357,11 +429,11 @@ const Register = () => {
                   onChange={(e) => handleOtpChange(idx, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                   onPaste={idx === 0 ? handleOtpPaste : undefined}
-                  className="w-11 h-13 text-center text-lg font-bold bg-slate-700/50 border border-slate-600 text-white rounded-xl focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all"
+                  className="w-12 h-14 text-center text-xl font-bold bg-slate-900 border border-slate-600 text-white rounded-xl focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 outline-none transition-all shadow-inner"
                 />
               ))}
             </div>
-            {errors.otp && <p className="text-red-400 text-xs mt-2 text-center">{errors.otp}</p>}
+            {errors.otp && <p className="text-red-400 text-sm mt-3 text-center bg-red-500/10 py-1.5 rounded-lg">{errors.otp}</p>}
           </div>
           <Button type="button" variant="primary" fullWidth onClick={handleVerifyOtp} loading={loading}>
             Verify OTP
@@ -373,23 +445,23 @@ const Register = () => {
 
   // === Step 3: Personal Info ===
   const renderStep3 = () => (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-white text-center mb-6">Personal Information</h2>
+    <div className="space-y-4 animate-[fadeIn_0.3s_ease-in]">
+      <h2 className="text-2xl font-bold text-white text-center mb-6">Personal Information</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-1.5">First Name</label>
           <input type="text" value={formData.firstName} onChange={(e) => updateField('firstName', e.target.value)}
-            placeholder="Enter first name"
-            className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl px-4 py-3 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500" />
-          {errors.firstName && <p className="text-red-400 text-xs mt-1">{errors.firstName}</p>}
+            placeholder="First Name"
+            className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl px-4 py-3.5 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500" />
+          {errors.firstName && <p className="text-red-400 text-xs mt-1.5 pl-1">{errors.firstName}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-1.5">Last Name</label>
           <input type="text" value={formData.lastName} onChange={(e) => updateField('lastName', e.target.value)}
-            placeholder="Enter last name"
-            className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl px-4 py-3 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500" />
-          {errors.lastName && <p className="text-red-400 text-xs mt-1">{errors.lastName}</p>}
+            placeholder="Last Name"
+            className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl px-4 py-3.5 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500" />
+          {errors.lastName && <p className="text-red-400 text-xs mt-1.5 pl-1">{errors.lastName}</p>}
         </div>
       </div>
 
@@ -398,15 +470,15 @@ const Register = () => {
           <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
           <input type="password" value={formData.password} onChange={(e) => updateField('password', e.target.value)}
             placeholder="Min 6 characters"
-            className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl px-4 py-3 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500" />
-          {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
+            className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl px-4 py-3.5 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500" />
+          {errors.password && <p className="text-red-400 text-xs mt-1.5 pl-1">{errors.password}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-1.5">Confirm Password</label>
           <input type="password" value={formData.confirmPassword} onChange={(e) => updateField('confirmPassword', e.target.value)}
-            placeholder="Re-enter password"
-            className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl px-4 py-3 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500" />
-          {errors.confirmPassword && <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>}
+            placeholder="Confirm Password"
+            className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl px-4 py-3.5 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500" />
+          {errors.confirmPassword && <p className="text-red-400 text-xs mt-1.5 pl-1">{errors.confirmPassword}</p>}
         </div>
       </div>
 
@@ -414,19 +486,19 @@ const Register = () => {
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-1.5">Date of Birth</label>
           <input type="date" value={formData.dateOfBirth} onChange={(e) => updateField('dateOfBirth', e.target.value)}
-            className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl px-4 py-3 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all [color-scheme:dark]" />
-          {errors.dateOfBirth && <p className="text-red-400 text-xs mt-1">{errors.dateOfBirth}</p>}
+            className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl px-4 py-3.5 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all [color-scheme:dark]" />
+          {errors.dateOfBirth && <p className="text-red-400 text-xs mt-1.5 pl-1">{errors.dateOfBirth}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-1.5">Gender</label>
           <select value={formData.gender} onChange={(e) => updateField('gender', e.target.value)}
-            className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl px-4 py-3 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all">
+            className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl px-4 py-3.5 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all">
             <option value="">Select gender</option>
             {GENDER_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
-          {errors.gender && <p className="text-red-400 text-xs mt-1">{errors.gender}</p>}
+          {errors.gender && <p className="text-red-400 text-xs mt-1.5 pl-1">{errors.gender}</p>}
         </div>
       </div>
     </div>
@@ -434,8 +506,8 @@ const Register = () => {
 
   // === Step 4: Location ===
   const renderStep4 = () => (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-white text-center mb-6">Your Location</h2>
+    <div className="space-y-4 animate-[fadeIn_0.3s_ease-in]">
+      <h2 className="text-2xl font-bold text-white text-center mb-6">Your Location</h2>
 
       <div>
         <label className="block text-sm font-medium text-slate-300 mb-1.5">Pincode</label>
@@ -445,48 +517,51 @@ const Register = () => {
             value={formData.pincode}
             onChange={(e) => handlePincodeLookup(e.target.value.replace(/\D/g, '').slice(0, 6))}
             placeholder="Enter 6-digit pincode"
-            className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl px-4 py-3 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500"
+            className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl px-4 py-3.5 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500"
             maxLength={6}
           />
           {pincodeLoading && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <div className="absolute right-4 top-1/2 -translate-y-1/2">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
             </div>
           )}
         </div>
-        {errors.pincode && <p className="text-red-400 text-xs mt-1">{errors.pincode}</p>}
+        {errors.pincode && <p className="text-red-400 text-xs mt-1.5 pl-1">{errors.pincode}</p>}
       </div>
 
       {(formData.block || formData.district || formData.state) && (
-        <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/50 space-y-3">
-          <div className="flex items-center gap-2 text-sm text-green-400 mb-2">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="bg-slate-800/40 rounded-xl p-5 border border-slate-700 space-y-4 animate-[slideDown_0.3s_ease-out]">
+          <div className="flex items-center gap-2 text-sm text-green-400 mb-2 font-medium">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
             Location found
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Block/Area</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">Block/Area</label>
               <input type="text" value={formData.block} onChange={(e) => updateField('block', e.target.value)}
-                className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:border-amber-400 outline-none transition-all" />
+                className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2.5 text-sm focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 outline-none transition-all" />
             </div>
             <div>
-              <label className="block text-xs text-slate-400 mb-1">District</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">District</label>
               <input type="text" value={formData.district} readOnly
-                className="w-full bg-slate-600/50 border border-slate-600 text-slate-300 rounded-lg px-3 py-2 text-sm" />
+                className="w-full bg-slate-800/50 border border-slate-700/50 text-slate-400 rounded-lg px-3 py-2.5 text-sm cursor-not-allowed" />
             </div>
             <div>
-              <label className="block text-xs text-slate-400 mb-1">State</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">State</label>
               <input type="text" value={formData.state} readOnly
-                className="w-full bg-slate-600/50 border border-slate-600 text-slate-300 rounded-lg px-3 py-2 text-sm" />
+                className="w-full bg-slate-800/50 border border-slate-700/50 text-slate-400 rounded-lg px-3 py-2.5 text-sm cursor-not-allowed" />
             </div>
           </div>
         </div>
       )}
 
       {errors.submit && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3 text-sm text-red-400">
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3.5 text-sm text-red-400 flex items-center gap-3">
+          <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           {errors.submit}
         </div>
       )}
@@ -494,12 +569,16 @@ const Register = () => {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 relative overflow-hidden px-4 py-8">
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-amber-500/3 rounded-full blur-3xl" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 relative overflow-x-hidden overflow-y-auto px-4 py-16">
+      {/* Background effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950 opacity-80" />
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-blue-500/20 rounded-full blur-[100px] animate-[pulse_8s_ease-in-out_infinite]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-purple-500/20 rounded-full blur-[100px] animate-[pulse_10s_ease-in-out_infinite_reverse]" />
+        <div className="absolute top-[20%] right-[10%] w-[30vw] h-[30vw] bg-amber-500/10 rounded-full blur-[80px] animate-[pulse_12s_ease-in-out_infinite]" />
+      </div>
 
-      <div className="relative w-full max-w-lg">
+      <div className="relative w-full max-w-xl my-auto pt-8">
         {/* Branding */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center h-14 w-14 rounded-xl bg-amber-500 mb-4 shadow-lg shadow-amber-500/20">
@@ -514,8 +593,10 @@ const Register = () => {
         {/* Step Indicator */}
         {renderStepIndicator()}
 
-        {/* Form Card */}
-        <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-700/50 p-8">
+        {/* Registration Card */}
+        <div className="bg-slate-900/60 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-700/50 p-6 sm:p-8 animate-[slideUp_0.4s_ease-out] relative overflow-hidden">
+          {/* Subtle inner border glow */}
+          <div className="absolute inset-0 border border-white/5 rounded-3xl pointer-events-none" />
           <form onSubmit={handleSubmit}>
             {step === 1 && renderStep1()}
             {step === 2 && renderStep2()}

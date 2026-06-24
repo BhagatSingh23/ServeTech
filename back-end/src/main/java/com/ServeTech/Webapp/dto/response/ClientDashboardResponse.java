@@ -46,6 +46,9 @@ public class ClientDashboardResponse {
         private String status;
         private String paymentStatus;
         private Double agreedWage;
+        private Double totalPaid;
+        private Double pendingAmount;
+        private String jobTitle;
 
         public RecentWorkerDTO() {
         }
@@ -60,5 +63,11 @@ public class ClientDashboardResponse {
         public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
         public Double getAgreedWage() { return agreedWage; }
         public void setAgreedWage(Double agreedWage) { this.agreedWage = agreedWage; }
+        public Double getTotalPaid() { return totalPaid; }
+        public void setTotalPaid(Double totalPaid) { this.totalPaid = totalPaid; }
+        public Double getPendingAmount() { return pendingAmount; }
+        public void setPendingAmount(Double pendingAmount) { this.pendingAmount = pendingAmount; }
+        public String getJobTitle() { return jobTitle; }
+        public void setJobTitle(String jobTitle) { this.jobTitle = jobTitle; }
     }
 }

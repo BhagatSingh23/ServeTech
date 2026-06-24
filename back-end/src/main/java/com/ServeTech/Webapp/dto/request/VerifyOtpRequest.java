@@ -7,9 +7,10 @@ import jakarta.validation.constraints.Size;
 // This class will be used to store data related to verifying OTPs
 public class VerifyOtpRequest {
 
-    @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^[6-9]\\d{9}$", message = "Invalid Indian phone number")
     private String phoneNumber;
+
+    private String email;
 
     @NotBlank(message = "OTP is required")
     @Size(min = 6, max = 6, message = "OTP must be 6 digits")
@@ -45,5 +46,13 @@ public class VerifyOtpRequest {
 
     public void setPurpose(String purpose) {
         this.purpose = purpose;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

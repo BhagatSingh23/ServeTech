@@ -21,8 +21,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.Collections;
 
 @Service
 public class AuthService {
@@ -63,18 +69,26 @@ public class AuthService {
     // Register user
     @Transactional
     public AuthResponse signup(@Valid @RequestBody SignupRequest request) {
-        // Verify that the OTP was already successfully verified in Step 2
-        boolean isOtpVerified = otpService.isOtpAlreadyVerified(
-                request.getPhoneNumber(),
-                "REGISTRATION"
-        );
-        if (!isOtpVerified) {
-            throw new CustomException("Phone number not verified. Please verify OTP first.");
+        boolean isPhoneSignup = request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty();
+        boolean isEmailSignup = request.getEmail() != null && !request.getEmail().isEmpty();
+
+        if (!isPhoneSignup && !isEmailSignup) {
+            throw new CustomException("Phone number or email is required for signup");
         }
 
-        // 2. Check if phone number already exists
-        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+        boolean phoneVerified = isPhoneSignup && otpService.isOtpAlreadyVerified(request.getPhoneNumber(), "REGISTRATION");
+        boolean emailVerified = isEmailSignup && otpService.isEmailOtpAlreadyVerified(request.getEmail(), "REGISTRATION");
+
+        if (!phoneVerified && !emailVerified) {
+            throw new CustomException("Please verify your contact (email or phone) with OTP first.");
+        }
+
+        if (isPhoneSignup && userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
             throw new CustomException("Phone number already registered");
+        }
+
+        if (isEmailSignup && userRepository.existsByEmail(request.getEmail())) {
+            throw new CustomException("Email already registered");
         }
 
         // 3. CONVERT STRING TO ENUM (Fixes the "incompatible type" error)
@@ -137,7 +151,18 @@ public class AuthService {
         user.setUsername(finalUsername);
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        if (isPhoneSignup) {
+            user.setPhoneNumber(request.getPhoneNumber());
+            user.setPhoneVerified(true);
+        } else {
+            // Need a dummy phone if not provided but we don't have it nullable, let's see. 
+            // Better set it from request if available.
+            user.setPhoneNumber(request.getPhoneNumber() != null ? request.getPhoneNumber() : uniqueUserId.substring(0, 10));
+        }
+        if (isEmailSignup) {
+            user.setEmail(request.getEmail());
+            user.setEmailVerified(true);
+        }
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setDateOfBirth(request.getDateOfBirth());
         user.setGender(request.getGender());
@@ -145,8 +170,7 @@ public class AuthService {
         user.setBlock(block);
         user.setDistrict(district);
         user.setState(state);
-        user.setPhoneVerified(true); // OTP verified
-        user.setAccountStatus(AccountStatus.ACTIVE);
+        user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
 
         // Add the role entity
         user.addRole(role);
@@ -175,41 +199,51 @@ public class AuthService {
     // Login Step 1: Validate credentials and send OTP
     @Transactional
     public void loginStep1(LoginRequest request) {
-        // Find user by username or phone number
         User user = findUserByUsernameOrPhone(request.getUsernameOrPhone());
 
-        // Verify password
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new CustomException("Invalid credentials");
         }
 
-        // Check if account is active
         if (user.getAccountStatus() != AccountStatus.ACTIVE) {
             throw new CustomException("Account is " + user.getAccountStatus().toString().toLowerCase());
         }
 
-        // Send OTP for login verification (logged to console in dev mode)
-        otpService.generateAndSendOtp(user.getPhoneNumber(), "LOGIN");
+        otpService.generateAndSendOtp(user.getPhoneNumber(), user.getEmail(), "LOGIN");
     }
 
     // Login Step 2: Verify OTP and return token
     @Transactional
     public AuthResponse loginStep2(String phoneNumber, String otp) {
-        // Verify OTP
         boolean otpValid = otpService.verifyOtp(phoneNumber, otp, "LOGIN");
         if (!otpValid) {
             throw new CustomException("Invalid or expired OTP");
         }
 
-        // Find user
         User user = userRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new CustomException("User not found"));
 
-        // Update last login
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
-        // Generate token
+        String token = jwtTokenProvider.generateToken(user);
+
+        return new AuthResponse(token, new UserResponse(user));
+    }
+
+    @Transactional
+    public AuthResponse loginStep2Email(String email, String otp) {
+        boolean otpValid = otpService.verifyEmailOtp(email, otp, "LOGIN");
+        if (!otpValid) {
+            throw new CustomException("Invalid or expired OTP");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException("User not found"));
+
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
+
         String token = jwtTokenProvider.generateToken(user);
 
         return new AuthResponse(token, new UserResponse(user));
@@ -240,13 +274,84 @@ public class AuthService {
 
     // Helper method to find user
     private User findUserByUsernameOrPhone(String usernameOrPhone) {
-        // Check if it's a phone number (10 digits)
         if (usernameOrPhone.matches("^[6-9]\\d{9}$")) {
             return userRepository.findByPhoneNumber(usernameOrPhone)
+                    .orElseThrow(() -> new CustomException("User not found"));
+        } else if (usernameOrPhone.contains("@")) {
+            return userRepository.findByEmail(usernameOrPhone)
                     .orElseThrow(() -> new CustomException("User not found"));
         } else {
             return userRepository.findByUsername(usernameOrPhone)
                     .orElseThrow(() -> new CustomException("User not found"));
+        }
+    }
+
+    @Transactional
+    public AuthResponse googleLogin(String idTokenString) {
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                    // Specify the CLIENT_ID of the app that accesses the backend, here we accept any audience or check specific one if available
+                    // .setAudience(Collections.singletonList("CLIENT_ID"))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(idTokenString);
+            if (idToken != null) {
+                GoogleIdToken.Payload payload = idToken.getPayload();
+                String email = payload.getEmail();
+                String firstName = (String) payload.get("given_name");
+                String lastName = (String) payload.get("family_name");
+
+                if (firstName == null) firstName = "Unknown";
+                if (lastName == null) lastName = "Unknown";
+
+                Optional<User> userOpt = userRepository.findByEmail(email);
+                User user;
+                if (userOpt.isPresent()) {
+                    user = userOpt.get();
+                } else {
+                    // Create new user
+                    user = new User();
+                    String uniqueUserId = uniqueIdGenerator.generateUniqueUserId();
+                    user.setUniqueUserId(uniqueUserId);
+                    String username = usernameGenerator.generateUsername(firstName, lastName, uniqueUserId);
+                    int suffix = 1;
+                    String finalUsername = username;
+                    while (userRepository.existsByUsername(finalUsername)) {
+                        finalUsername = username + suffix;
+                        suffix++;
+                    }
+                    user.setUsername(finalUsername);
+                    user.setFirstName(firstName);
+                    user.setLastName(lastName);
+                    user.setEmail(email);
+                    user.setEmailVerified(true);
+                    
+                    // Dummy defaults for fields that need profile completion
+                    user.setPhoneNumber(uniqueUserId.substring(0, 10)); // Required field
+                    user.setPassword(passwordEncoder.encode(uniqueUserId)); // Random password
+                    user.setDateOfBirth(java.time.LocalDate.now()); // Dummy
+                    user.setGender(com.ServeTech.Webapp.entity.enums.GenderType.MALE); // Dummy
+                    user.setPincode("000000"); // Dummy
+                    user.setBlock("Unknown");
+                    user.setDistrict("Unknown");
+                    user.setState("Unknown");
+                    
+                    user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
+                    // Leave role empty, will require profile completion
+                    user = userRepository.save(user);
+                }
+
+                user.setLastLogin(LocalDateTime.now());
+                userRepository.save(user);
+
+                String token = jwtTokenProvider.generateToken(user);
+                return new AuthResponse(token, new UserResponse(user));
+
+            } else {
+                throw new CustomException("Invalid Google ID token");
+            }
+        } catch (Exception e) {
+            throw new CustomException("Failed to verify Google ID token: " + e.getMessage());
         }
     }
 }

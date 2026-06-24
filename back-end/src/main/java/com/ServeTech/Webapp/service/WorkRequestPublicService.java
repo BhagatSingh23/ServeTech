@@ -33,7 +33,6 @@ public class WorkRequestPublicService {
     }
 
     public List<WorkRequestResponse> browseJobs(Long workerId, String pincode, List<Long> skillIds, Boolean urgent) {
-        // Get the worker's skills for filtering
         WorkerProfile profile = workerProfileRepository.findByUserId(workerId)
                 .orElse(null);
         Set<Long> workerSkillIds = new HashSet<>();
@@ -54,22 +53,20 @@ public class WorkRequestPublicService {
             requests = workRequestRepository.findAllOpenRequests();
         }
 
-        // Filter: only show jobs that match the worker's skills
-        // Jobs with no required skills are shown to everyone
         final Set<Long> finalWorkerSkillIds = workerSkillIds;
         return requests.stream()
-                .filter(wr -> {
-                    if (wr.getRequiredSkills() == null || wr.getRequiredSkills().isEmpty()) {
-                        return true; // no skill requirement, show to all
-                    }
-                    // Show only if worker has at least one matching skill
-                    return wr.getRequiredSkills().stream()
-                            .anyMatch(skill -> finalWorkerSkillIds.contains(skill.getId()));
-                })
                 .map(wr -> {
                     WorkRequestResponse response = WorkRequestResponse.fromEntity(wr);
                     response.setHasApplied(
                             workApplicationRepository.existsByWorkerIdAndWorkRequestId(workerId, wr.getId()));
+                    
+                    boolean canApply = true;
+                    if (wr.getRequiredSkills() != null && !wr.getRequiredSkills().isEmpty()) {
+                        canApply = wr.getRequiredSkills().stream()
+                                .anyMatch(skill -> finalWorkerSkillIds.contains(skill.getId()));
+                    }
+                    response.setCanApply(canApply);
+                    
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -83,6 +80,7 @@ public class WorkRequestPublicService {
         List<Long> skillIds = profile.getSkills().stream()
                 .map(s -> s.getId())
                 .collect(Collectors.toList());
+        Set<Long> finalWorkerSkillIds = new HashSet<>(skillIds);
 
         // Multi-tier recommendation: collect jobs from best match to broadest
         List<WorkRequest> results = new ArrayList<>();
@@ -106,18 +104,10 @@ public class WorkRequestPublicService {
 
         // Tier 3: All open jobs that match worker's skills (fallback if still few results)
         if (results.size() < 5) {
-            Set<Long> workerSkillIdSet = new HashSet<>(skillIds);
             List<WorkRequest> tier3 = workRequestRepository.findAllOpenRequests();
             for (WorkRequest wr : tier3) {
                 if (seenIds.add(wr.getId())) {
-                    // Only include if no skills required or worker has a matching skill
-                    if (wr.getRequiredSkills() == null || wr.getRequiredSkills().isEmpty()) {
-                        results.add(wr);
-                    } else {
-                        boolean matches = wr.getRequiredSkills().stream()
-                                .anyMatch(s -> workerSkillIdSet.contains(s.getId()));
-                        if (matches) results.add(wr);
-                    }
+                    results.add(wr);
                 }
             }
         }
@@ -127,6 +117,14 @@ public class WorkRequestPublicService {
                     WorkRequestResponse response = WorkRequestResponse.fromEntity(wr);
                     response.setHasApplied(
                             workApplicationRepository.existsByWorkerIdAndWorkRequestId(workerId, wr.getId()));
+                    
+                    boolean canApply = true;
+                    if (wr.getRequiredSkills() != null && !wr.getRequiredSkills().isEmpty()) {
+                        canApply = wr.getRequiredSkills().stream()
+                                .anyMatch(skill -> finalWorkerSkillIds.contains(skill.getId()));
+                    }
+                    response.setCanApply(canApply);
+                    
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -140,6 +138,19 @@ public class WorkRequestPublicService {
         if (workerId != null) {
             response.setHasApplied(
                     workApplicationRepository.existsByWorkerIdAndWorkRequestId(workerId, jobId));
+                    
+            WorkerProfile profile = workerProfileRepository.findByUserId(workerId).orElse(null);
+            if (profile != null) {
+                Set<Long> workerSkillIds = profile.getSkills().stream()
+                        .map(s -> s.getId()).collect(Collectors.toSet());
+                
+                boolean canApply = true;
+                if (workRequest.getRequiredSkills() != null && !workRequest.getRequiredSkills().isEmpty()) {
+                    canApply = workRequest.getRequiredSkills().stream()
+                            .anyMatch(skill -> workerSkillIds.contains(skill.getId()));
+                }
+                response.setCanApply(canApply);
+            }
         }
         return response;
     }

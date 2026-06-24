@@ -13,7 +13,6 @@ const SKILLS = [
   'WELDER', 'DRIVER', 'COOK', 'GARDENER', 'CLEANER', 'HELPER', 'LABOUR', 'OTHER',
 ];
 
-// Get today's datetime in local format for min attribute
 const getTodayMin = () => {
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -21,7 +20,7 @@ const getTodayMin = () => {
 };
 
 const PostJob = () => {
-  const [searchParams] = useSearchParams();
+const [searchParams] = useSearchParams();
   const editId = searchParams.get('edit');
   const isEditMode = !!editId;
 
@@ -49,11 +48,8 @@ const PostJob = () => {
   const toast = useToast();
   const navigate = useNavigate();
 
-  // Load existing job data when editing
   useEffect(() => {
-    if (isEditMode) {
-      loadJobData();
-    }
+    if (isEditMode) loadJobData();
   }, [editId]);
 
   const loadJobData = async () => {
@@ -62,10 +58,8 @@ const PostJob = () => {
       const response = await getWorkRequestById(editId);
       const job = response.data.data;
       if (job) {
-        // Convert date to datetime-local format if needed
         const startDate = job.startDate ? (job.startDate.includes('T') ? job.startDate.slice(0, 16) : job.startDate + 'T09:00') : '';
         const endDate = job.endDate ? (job.endDate.includes('T') ? job.endDate.slice(0, 16) : job.endDate + 'T18:00') : '';
-
         setFormData({
           title: job.title || '',
           description: job.description || '',
@@ -82,8 +76,6 @@ const PostJob = () => {
           negotiable: job.isNegotiable !== false,
           urgent: job.isUrgent || false,
         });
-
-        // Auto-lookup pincode to fill location
         if (job.pincode && job.pincode.length === 6) {
           try {
             const locRes = await getLocationByPincode(job.pincode);
@@ -141,7 +133,6 @@ const PostJob = () => {
     }
   };
 
-  // Calculate budget
   const calculateBudget = () => {
     const { wagePerDay, startDate, endDate, workersNeeded } = formData;
     if (!wagePerDay || !startDate || !endDate || !workersNeeded) return null;
@@ -168,8 +159,8 @@ const PostJob = () => {
     if (!formData.description.trim()) newErrors.description = 'Description is required';
     if (formData.skillsRequired.length === 0) newErrors.skillsRequired = 'Select at least one skill';
     if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = 'Enter a valid 6-digit pincode';
-    if (!formData.startDate) newErrors.startDate = 'Start date & time is required';
-    if (!formData.endDate) newErrors.endDate = 'End date & time is required';
+    if (!formData.startDate) newErrors.startDate = 'Start date is required';
+    if (!formData.endDate) newErrors.endDate = 'End date is required';
     if (formData.startDate && formData.endDate && new Date(formData.endDate) < new Date(formData.startDate)) {
       newErrors.endDate = 'End date must be after start date';
     }
@@ -182,7 +173,6 @@ const PostJob = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-
     setLoading(true);
     try {
       const payload = {
@@ -202,14 +192,14 @@ const PostJob = () => {
 
       if (isEditMode) {
         await updateWorkRequest(editId, payload);
-        toast.success('Job updated successfully!');
+        toast.success('Job posted successfully!');
       } else {
         await createWorkRequest(payload);
         toast.success('Job posted successfully!');
       }
       navigate('/client/my-jobs');
     } catch (error) {
-      toast.error(error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'post'} job`);
+      toast.error(error.response?.data?.message || 'Failed to post job');
     } finally {
       setLoading(false);
     }
@@ -230,10 +220,8 @@ const PostJob = () => {
     <DashboardLayout pageTitle={isEditMode ? 'Edit Job' : 'Post a New Job'}>
       <div className="max-w-3xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Title */}
-          <div className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-6">
+          <div className="bg-slate-800/80 backdrop-blur-xl rounded-xl shadow-lg border border-slate-700/80 p-6 transition-all duration-300 hover:shadow-amber-500/10">
             <h3 className="text-lg font-semibold text-white mb-4">Job Details</h3>
-
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1.5">Job Title</label>
@@ -242,7 +230,7 @@ const PostJob = () => {
                   value={formData.title}
                   onChange={(e) => updateField('title', e.target.value)}
                   placeholder="e.g., Need plumber for bathroom renovation"
-                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500"
+                  className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500 hover:bg-slate-700/70"
                 />
                 {errors.title && <p className="text-red-400 text-xs mt-1">{errors.title}</p>}
               </div>
@@ -254,12 +242,11 @@ const PostJob = () => {
                   onChange={(e) => updateField('description', e.target.value)}
                   rows={4}
                   placeholder="Describe the work in detail..."
-                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500 resize-none"
+                  className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500 resize-none hover:bg-slate-700/70"
                 />
                 {errors.description && <p className="text-red-400 text-xs mt-1">{errors.description}</p>}
               </div>
 
-              {/* Skills */}
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">Skills Required</label>
                 <div className="flex flex-wrap gap-2">
@@ -270,8 +257,8 @@ const PostJob = () => {
                       onClick={() => toggleSkill(skill)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
                         formData.skillsRequired.includes(skill)
-                          ? 'bg-amber-500 text-black'
-                          : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
+                          ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-black shadow-lg shadow-amber-500/20 scale-105'
+                          : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600 border border-slate-600/50'
                       }`}
                     >
                       {skill}
@@ -281,31 +268,28 @@ const PostJob = () => {
                 {errors.skillsRequired && <p className="text-red-400 text-xs mt-1">{errors.skillsRequired}</p>}
               </div>
 
-              {/* Urgency */}
               <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
+                <label className="flex items-center gap-2 cursor-pointer select-none group">
                   <div
                     onClick={() => updateField('urgent', !formData.urgent)}
-                    className={`relative w-11 h-6 rounded-full transition-all duration-200 cursor-pointer ${
-                      formData.urgent ? 'bg-red-500' : 'bg-slate-600'
+                    className={`relative w-11 h-6 rounded-full transition-all duration-300 cursor-pointer ${
+                      formData.urgent ? 'bg-red-500 shadow-lg shadow-red-500/30' : 'bg-slate-600 group-hover:bg-slate-500'
                     }`}
                   >
                     <div
-                      className={`absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full transition-transform duration-200 ${
+                      className={`absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full transition-transform duration-300 ${
                         formData.urgent ? 'translate-x-5' : ''
                       }`}
                     />
                   </div>
-                  <span className="text-sm text-slate-300">Mark as Urgent</span>
+                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors">Mark as Urgent</span>
                 </label>
               </div>
             </div>
           </div>
 
-          {/* Location */}
-          <div className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-6">
+          <div className="bg-slate-800/80 backdrop-blur-xl rounded-xl shadow-lg border border-slate-700/80 p-6 transition-all duration-300 hover:shadow-amber-500/10">
             <h3 className="text-lg font-semibold text-white mb-4">Location</h3>
-
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -316,7 +300,7 @@ const PostJob = () => {
                       value={formData.pincode}
                       onChange={(e) => handlePincodeLookup(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       placeholder="6-digit pincode"
-                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500"
+                      className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500 hover:bg-slate-700/70"
                       maxLength={6}
                     />
                     {pincodeLoading && (
@@ -334,15 +318,15 @@ const PostJob = () => {
                     value={formData.address}
                     onChange={(e) => updateField('address', e.target.value)}
                     placeholder="Street address or landmark"
-                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500"
+                    className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500 hover:bg-slate-700/70"
                   />
                 </div>
               </div>
 
               {(formData.block || formData.district || formData.state) && (
-                <div className="grid grid-cols-3 gap-3 bg-slate-700/50 rounded-lg p-3 border border-slate-600">
+                <div className="grid grid-cols-3 gap-3 bg-slate-700/30 backdrop-blur-sm rounded-lg p-3 border border-slate-600/50">
                   <div>
-                    <p className="text-xs text-slate-400">Block</p>
+                    <p className="text-xs text-slate-400">Block/Area</p>
                     <p className="text-sm text-white">{formData.block || '—'}</p>
                   </div>
                   <div>
@@ -358,31 +342,29 @@ const PostJob = () => {
             </div>
           </div>
 
-          {/* Schedule & Budget */}
-          <div className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Schedule & Budget</h3>
-
+          <div className="bg-slate-800/80 backdrop-blur-xl rounded-xl shadow-lg border border-slate-700/80 p-6 transition-all duration-300 hover:shadow-amber-500/10">
+            <h3 className="text-lg font-semibold text-white mb-4">Schedule & Timing</h3>
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Start Date & Time</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Start Date</label>
                   <input
                     type="datetime-local"
                     value={formData.startDate}
                     onChange={(e) => updateField('startDate', e.target.value)}
                     min={todayMin}
-                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all [color-scheme:dark]"
+                    className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all hover:bg-slate-700/70 [color-scheme:dark]"
                   />
                   {errors.startDate && <p className="text-red-400 text-xs mt-1">{errors.startDate}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">End Date & Time</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1.5">End Date</label>
                   <input
                     type="datetime-local"
                     value={formData.endDate}
                     onChange={(e) => updateField('endDate', e.target.value)}
                     min={formData.startDate || todayMin}
-                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all [color-scheme:dark]"
+                    className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all hover:bg-slate-700/70 [color-scheme:dark]"
                   />
                   {errors.endDate && <p className="text-red-400 text-xs mt-1">{errors.endDate}</p>}
                 </div>
@@ -396,7 +378,7 @@ const PostJob = () => {
                     value={formData.workersNeeded}
                     onChange={(e) => updateField('workersNeeded', e.target.value)}
                     min="1"
-                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all"
+                    className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all hover:bg-slate-700/70"
                   />
                   {errors.workersNeeded && <p className="text-red-400 text-xs mt-1">{errors.workersNeeded}</p>}
                 </div>
@@ -408,52 +390,49 @@ const PostJob = () => {
                     onChange={(e) => updateField('wagePerDay', e.target.value)}
                     min="1"
                     placeholder="e.g., 500"
-                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500"
+                    className="w-full bg-slate-700/50 border border-slate-600/50 text-white rounded-lg px-4 py-2.5 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all placeholder-slate-500 hover:bg-slate-700/70"
                   />
                   {errors.wagePerDay && <p className="text-red-400 text-xs mt-1">{errors.wagePerDay}</p>}
                 </div>
               </div>
 
-              {/* Negotiable Toggle */}
               <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
+                <label className="flex items-center gap-2 cursor-pointer select-none group">
                   <div
                     onClick={() => updateField('negotiable', !formData.negotiable)}
-                    className={`relative w-11 h-6 rounded-full transition-all duration-200 cursor-pointer ${
-                      formData.negotiable ? 'bg-green-500' : 'bg-slate-600'
+                    className={`relative w-11 h-6 rounded-full transition-all duration-300 cursor-pointer ${
+                      formData.negotiable ? 'bg-green-500 shadow-lg shadow-green-500/30' : 'bg-slate-600 group-hover:bg-slate-500'
                     }`}
                   >
                     <div
-                      className={`absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full transition-transform duration-200 ${
+                      className={`absolute top-0.5 left-0.5 h-5 w-5 bg-white rounded-full transition-transform duration-300 ${
                         formData.negotiable ? 'translate-x-5' : ''
                       }`}
                     />
                   </div>
-                  <span className="text-sm text-slate-300">Wage is Negotiable</span>
+                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors">Wage is Negotiable</span>
                 </label>
               </div>
 
-              {/* Budget Calculation */}
               {budget !== null && (
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
-                  <p className="text-sm text-amber-400 font-medium mb-2">💰 Estimated Budget</p>
+                <div className="bg-amber-500/10 backdrop-blur-md border border-amber-500/30 rounded-lg p-4 transition-all hover:bg-amber-500/20">
+                  <p className="text-sm text-amber-400 font-medium mb-2">💰 Estimated Amount</p>
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-slate-300">
                       {formatCurrency(formData.wagePerDay)} × {durationDays()} days × {formData.workersNeeded} worker{Number(formData.workersNeeded) > 1 ? 's' : ''}
                     </p>
-                    <p className="text-xl font-bold text-amber-400">{formatCurrency(budget)}</p>
+                    <p className="text-xl font-bold text-amber-400 drop-shadow-md">{formatCurrency(budget)}</p>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Submit */}
           <div className="flex justify-end gap-3">
-            <Button variant="secondary" onClick={() => navigate('/client/my-jobs')} type="button">
+            <Button variant="secondary" onClick={() => navigate('/client/my-jobs')} type="button" className="hover:bg-slate-700">
               Cancel
             </Button>
-            <Button variant="primary" type="submit" loading={loading} size="lg">
+            <Button variant="primary" type="submit" loading={loading} size="lg" className="bg-gradient-to-r from-amber-500 to-amber-400 text-black hover:from-amber-400 hover:to-amber-300 transform hover:-translate-y-0.5 transition-all shadow-lg shadow-amber-500/25 border-0">
               {isEditMode ? 'Update Job' : 'Post Job'}
             </Button>
           </div>

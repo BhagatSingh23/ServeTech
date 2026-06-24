@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../context/AuthContext';
 
+
 const DashboardLayout = ({ children, pageTitle }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();

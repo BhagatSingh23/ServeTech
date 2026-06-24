@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from './context/AuthContext';
 
 const roleLabels = {
   WORKER: 'Worker',
@@ -22,7 +22,7 @@ const roleBadgeColors = {
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -55,8 +55,8 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="h-8 w-8 rounded-lg bg-amber-500 flex items-center justify-center transition-transform group-hover:scale-105">
-              <span className="text-black font-bold text-base">S</span>
+            <div className="h-8 w-8 rounded-lg bg-amber-500 flex items-center justify-center transition-transform group-hover:scale-105 overflow-hidden">
+              <img src="/logo.png" alt="ServeTech Logo" className="h-full w-full object-cover" />
             </div>
             <span className="text-lg font-bold text-white tracking-tight">
               Serve<span className="text-amber-400">Tech</span>
@@ -64,8 +64,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-4">
-            {!isAuthenticated ? (
+          <div className="hidden md:flex items-center gap-4">{!isAuthenticated ? (
               <>
                 <Link
                   to="/login"
@@ -165,6 +164,7 @@ const Navbar = () => {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-gray-800 bg-[#010409]">
           <div className="px-4 py-4 space-y-2">
+            <div className="px-4 py-2"></div>
             {!isAuthenticated ? (
               <>
                 <Link

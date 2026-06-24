@@ -16,6 +16,7 @@ public interface WorkRequestRepository extends JpaRepository<WorkRequest, Long> 
     List<WorkRequest> findByClientIdAndStatusOrderByCreatedAtDesc(Long clientId, WorkRequestStatus status);
     List<WorkRequest> findByStatusOrderByCreatedAtDesc(WorkRequestStatus status);
     List<WorkRequest> findByPincodeAndStatusOrderByCreatedAtDesc(String pincode, WorkRequestStatus status);
+    List<WorkRequest> findByStatusAndEndDateBefore(WorkRequestStatus status, java.time.LocalDateTime endDate);
 
     @Query("SELECT wr FROM WorkRequest wr WHERE wr.status = 'OPEN' AND wr.pincode = :pincode ORDER BY wr.isUrgent DESC, wr.createdAt DESC")
     List<WorkRequest> findOpenRequestsByPincode(@Param("pincode") String pincode);

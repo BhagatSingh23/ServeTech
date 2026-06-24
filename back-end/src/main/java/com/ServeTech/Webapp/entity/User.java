@@ -52,7 +52,7 @@ public class User {
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private GenderType genderType;
 
-    @Column(nullable = false, length = 10, name = "phone_number", unique = true)
+    @Column(length = 10, name = "phone_number", unique = true)
     private String phoneNumber;
 
     @Column(nullable = false, length = 6)
@@ -72,6 +72,12 @@ public class User {
 
     @Column(name = "phone_verified", nullable = false)
     private boolean phoneVerified = false;
+
+    @Column(unique = true, length = 100)
+    private String email;
+
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30, name = "account_status")
@@ -149,6 +155,10 @@ public class User {
     public void setPassword(String password) { this.password = password; }
     public boolean isPhoneVerified() { return phoneVerified; }
     public void setPhoneVerified(boolean phoneVerified) { this.phoneVerified = phoneVerified; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public boolean isEmailVerified() { return emailVerified; }
+    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
     public AccountStatus getAccountStatus() { return accountStatus; }
     public void setAccountStatus(AccountStatus accountStatus) { this.accountStatus = accountStatus; }
     public Set<Role> getRoles() { return roles; }

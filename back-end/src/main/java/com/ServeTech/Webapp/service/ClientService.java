@@ -89,6 +89,10 @@ public class ClientService {
                     dto.setStatus(a.getProgressStatus().name());
                     dto.setPaymentStatus(a.getPaymentStatus().name());
                     dto.setAgreedWage(a.getAgreedWagePerDay());
+                    dto.setTotalPaid(a.getAmountPaid() != null ? a.getAmountPaid() : 0.0);
+                    Double totalAmount = a.getAgreedWagePerDay() * (a.getWorkRequest().getEstimatedDurationDays() != null ? a.getWorkRequest().getEstimatedDurationDays() : 1);
+                    dto.setPendingAmount(totalAmount - (a.getAmountPaid() != null ? a.getAmountPaid() : 0.0));
+                    dto.setJobTitle(a.getWorkRequest().getTitle());
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -159,6 +163,11 @@ public class ClientService {
         WorkRequestResponse res = WorkRequestResponse.fromEntity(wr);
         long accepted = workApplicationRepository.countByWorkRequestIdAndStatus(wr.getId(), com.ServeTech.Webapp.entity.enums.ApplicationStatus.ACCEPTED);
         res.setWorkersAssigned((int) accepted);
+
+        long pending = workApplicationRepository.countByWorkRequestIdAndStatus(wr.getId(), com.ServeTech.Webapp.entity.enums.ApplicationStatus.PENDING);
+        long rejected = workApplicationRepository.countByWorkRequestIdAndStatus(wr.getId(), com.ServeTech.Webapp.entity.enums.ApplicationStatus.REJECTED);
+        res.setApplicationCount((int) (accepted + pending + rejected));
+
         return res;
     }
 

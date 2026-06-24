@@ -13,5 +13,9 @@ public interface OtpVerificationRepository extends JpaRepository<OtpVerification
             String phoneNumber, String purpose
     );
 
+    Optional<OtpVerification> findTopByEmailAndPurposeOrderByCreatedAtDesc(
+            String email, String purpose
+    );
+
     void deleteByExpiryTimeBefore(LocalDateTime dateTime);
 }

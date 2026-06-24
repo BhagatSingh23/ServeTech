@@ -36,7 +36,7 @@ const StatsCard = ({ icon, label, value, trend, color = 'amber' }) => {
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0 pr-3">
           <p className="text-sm font-medium text-slate-400 truncate">{label}</p>
-          <p className="mt-2 text-3xl font-bold text-white tracking-tight truncate">{value}</p>
+          <p className="mt-2 text-2xl md:text-3xl font-bold text-white tracking-tight break-words">{value}</p>
           {trend && (
             <div className="mt-2 flex items-center gap-1">
               <span className={`text-xs font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>

@@ -33,6 +33,8 @@ public class WorkRequestResponse {
     private String additionalRequirements;
     private LocalDateTime createdAt;
     private Boolean hasApplied;
+    private Boolean canApply;
+    private Integer applicationCount;
 
     public WorkRequestResponse() {
     }
@@ -113,4 +115,8 @@ public class WorkRequestResponse {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public Boolean getHasApplied() { return hasApplied; }
     public void setHasApplied(Boolean hasApplied) { this.hasApplied = hasApplied; }
+    public Boolean getCanApply() { return canApply; }
+    public void setCanApply(Boolean canApply) { this.canApply = canApply; }
+    public Integer getApplicationCount() { return applicationCount; }
+    public void setApplicationCount(Integer applicationCount) { this.applicationCount = applicationCount; }
 }

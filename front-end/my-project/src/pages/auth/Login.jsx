@@ -6,7 +6,8 @@ import Button from '../../components/common/Button';
 
 const Login = () => {
   const [step, setStep] = useState(1); // 1 = credentials, 2 = OTP
-  const [phone, setPhone] = useState('');
+  const [loginMethod, setLoginMethod] = useState('phone'); // 'phone' or 'email'
+  const [identifier, setIdentifier] = useState(''); // phone or email
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -16,8 +17,8 @@ const Login = () => {
 
   const otpRefs = useRef([]);
 
-  const { loginStep1, loginStep2 } = useAuth();
-  const toast = useToast();
+  const { loginStep1, loginStep2, googleLogin } = useAuth();
+const toast = useToast();
   const navigate = useNavigate();
 
   // OTP countdown timer
@@ -29,14 +30,70 @@ const Login = () => {
   }, [otpTimer]);
 
   const validatePhone = (value) => /^[6-9]\d{9}$/.test(value);
+  const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+  // Initialize Google Sign-In
+  useEffect(() => {
+    // Add Google script if it doesn't exist
+    if (!document.getElementById('google-jssdk')) {
+      const script = document.createElement('script');
+      script.id = 'google-jssdk';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  const handleGoogleCallback = async (response) => {
+    setLoading(true);
+    setError('');
+    const result = await googleLogin(response.credential);
+    if (result.success) {
+      toast.success('Login successful!');
+      const roles = result.user?.roles || [];
+      if (roles.includes('ROLE_ADMIN')) navigate('/admin/dashboard', { replace: true });
+      else if (roles.includes('ROLE_CLIENT')) navigate('/client/dashboard', { replace: true });
+      else if (roles.includes('ROLE_WORKER')) navigate('/worker/dashboard', { replace: true });
+      else navigate('/', { replace: true });
+    } else {
+      setError(result.message || 'Google Sign-In failed.');
+      toast.error(result.message || 'Google Sign-In failed.');
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    // Wait for the script to load and initialize the button
+    const checkGoogle = setInterval(() => {
+      if (window.google && document.getElementById('google-signin-btn')) {
+        clearInterval(checkGoogle);
+        window.google.accounts.id.initialize({
+          client_id: '99999999999-placeholder.apps.googleusercontent.com', // Replace with actual Client ID
+          callback: handleGoogleCallback,
+          context: 'signin',
+          ux_mode: 'popup',
+        });
+        window.google.accounts.id.renderButton(
+          document.getElementById('google-signin-btn'),
+          { theme: 'outline', size: 'large', width: '100%' }
+        );
+      }
+    }, 100);
+    return () => clearInterval(checkGoogle);
+  }, [step]); // re-render button if step changes (though we only show it on step 1)
 
   // Step 1: Validate credentials and send OTP
   const handleCredentialsSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!validatePhone(phone)) {
+    if (loginMethod === 'phone' && !validatePhone(identifier)) {
       setError('Please enter a valid 10-digit Indian phone number');
+      return;
+    }
+    if (loginMethod === 'email' && !validateEmail(identifier)) {
+      setError('Please enter a valid email address');
       return;
     }
     if (password.length < 6) {
@@ -46,9 +103,9 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const result = await loginStep1({ usernameOrPhone: phone, password });
+      const result = await loginStep1({ usernameOrPhone: identifier, password });
       if (result.success) {
-        toast.success('OTP sent! Check your Spring Boot console.');
+        toast.success('OTP sent successfully!');
         setStep(2);
         setOtpTimer(120);
         setTimeout(() => otpRefs.current[0]?.focus(), 100);
@@ -75,9 +132,9 @@ const Login = () => {
     setLoading(true);
     setError('');
     try {
-      const result = await loginStep2(phone, otpString);
+      const result = await loginStep2(identifier, otpString);
       if (result.success) {
-        toast.success('Login successful! Welcome back.');
+        toast.success('Login successful!');
         const user = result.user;
         const roles = user?.roles || [];
         if (roles.includes('ROLE_ADMIN')) navigate('/admin/dashboard', { replace: true });
@@ -126,9 +183,9 @@ const Login = () => {
     if (otpTimer > 0) return;
     setLoading(true);
     try {
-      const result = await loginStep1({ usernameOrPhone: phone, password });
+      const result = await loginStep1({ usernameOrPhone: identifier, password });
       if (result.success) {
-        toast.success('OTP resent! Check your Spring Boot console.');
+        toast.success('OTP sent successfully!');
         setOtpTimer(120);
         setOtp(['', '', '', '', '', '']);
         otpRefs.current[0]?.focus();
@@ -141,23 +198,28 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 relative overflow-hidden px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 relative overflow-x-hidden overflow-y-auto px-4 py-16">
       {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-amber-500/3 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-slate-900 to-purple-950 opacity-80" />
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-blue-500/20 rounded-full blur-[100px] animate-[pulse_8s_ease-in-out_infinite]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-purple-500/20 rounded-full blur-[100px] animate-[pulse_10s_ease-in-out_infinite_reverse]" />
+        <div className="absolute top-[20%] right-[10%] w-[30vw] h-[30vw] bg-amber-500/10 rounded-full blur-[80px] animate-[pulse_12s_ease-in-out_infinite]" />
+      </div>
 
-      <div className="relative w-full max-w-md">
+      <div className="absolute top-4 right-4"></div>
+
+      <div className="relative w-full max-w-md my-auto pt-8">
         {/* Branding */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center h-14 w-14 rounded-xl bg-amber-500 mb-4 shadow-lg shadow-amber-500/20">
+        <div className="text-center mb-8 animate-[fadeIn_0.5s_ease-out]">
+          <div className="inline-flex items-center justify-center h-14 w-14 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 mb-4 shadow-lg shadow-amber-500/30">
             <span className="text-black font-bold text-2xl">S</span>
           </div>
-          <h1 className="text-3xl font-bold text-white">
-            Welcome to Serve<span className="text-amber-400">Tech</span>
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            Welcome to Serve<span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-200">Tech</span>
           </h1>
           <p className="mt-2 text-slate-400">
-            {step === 1 ? 'Sign in to your account' : 'Enter the OTP sent to your phone'}
+            {step === 1 ? ('Sign in to your account') : ('Enter the OTP sent to your device')}
           </p>
         </div>
 
@@ -169,7 +231,9 @@ const Login = () => {
         </div>
 
         {/* Login Card */}
-        <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-700/50 p-8">
+        <div className="bg-slate-900/60 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-700/50 p-8 animate-[slideUp_0.4s_ease-out] relative overflow-hidden">
+          {/* Subtle inner border glow */}
+          <div className="absolute inset-0 border border-white/5 rounded-3xl pointer-events-none" />
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3 text-sm text-red-400 flex items-center gap-2 mb-5">
               <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -181,22 +245,42 @@ const Login = () => {
 
           {step === 1 && (
             <form onSubmit={handleCredentialsSubmit} className="space-y-5">
-              {/* Phone Number */}
+              {/* Login Method Toggle */}
+              <div className="flex p-1 bg-slate-900/50 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => { setLoginMethod('phone'); setIdentifier(''); setError(''); }}
+                  className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${loginMethod === 'phone' ? 'bg-slate-700 text-white shadow-md' : 'text-slate-400 hover:text-slate-300'}`}
+                >
+                  Phone
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setLoginMethod('email'); setIdentifier(''); setError(''); }}
+                  className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${loginMethod === 'email' ? 'bg-slate-700 text-white shadow-md' : 'text-slate-400 hover:text-slate-300'}`}
+                >
+                  Email
+                </button>
+              </div>
+
+              {/* Identifier */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Phone Number</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                  {loginMethod === 'phone' ? ('Phone Number') : ('Email Address')}
+                </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">+91</span>
+                  {loginMethod === 'phone' && <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">+91</span>}
                   <input
-                    type="tel"
-                    value={phone}
+                    type={loginMethod === 'phone' ? 'tel' : 'email'}
+                    value={identifier}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                      setPhone(val);
+                      const val = loginMethod === 'phone' ? e.target.value.replace(/\D/g, '').slice(0, 10) : e.target.value;
+                      setIdentifier(val);
                       setError('');
                     }}
-                    placeholder="Enter 10-digit number"
-                    className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl pl-12 pr-4 py-3 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500"
-                    maxLength={10}
+                    placeholder={loginMethod === 'phone' ? '10-digit number' : 'name@example.com'}
+                    className={`w-full bg-slate-950/60 border border-slate-700 text-white rounded-xl pr-4 py-3 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500 hover:border-slate-600 ${loginMethod === 'phone' ? 'pl-12' : 'pl-4'}`}
+                    maxLength={loginMethod === 'phone' ? 10 : 100}
                   />
                 </div>
               </div>
@@ -204,7 +288,7 @@ const Login = () => {
               {/* Password */}
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
-                <div className="relative">
+                <div className="relative group">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
@@ -213,7 +297,7 @@ const Login = () => {
                       setError('');
                     }}
                     placeholder="Enter your password"
-                    className="w-full bg-slate-700/50 border border-slate-600 text-white rounded-xl px-4 py-3 pr-12 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500"
+                    className="w-full bg-slate-950/60 border border-slate-700 text-white rounded-xl px-4 py-3 pr-12 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all placeholder-slate-500 hover:border-slate-600"
                   />
                   <button
                     type="button"
@@ -235,9 +319,22 @@ const Login = () => {
               </div>
 
               {/* Submit */}
-              <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth>
+              <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth className="bg-gradient-to-r from-amber-500 to-amber-400 text-black shadow-lg shadow-amber-500/20">
                 Verify & Send OTP →
               </Button>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-700"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-slate-800 text-slate-400">Or continue with</span>
+                </div>
+              </div>
+
+              {/* Google Sign In Button Container */}
+              <div id="google-signin-btn" className="w-full flex justify-center"></div>
+
             </form>
           )}
 
@@ -250,9 +347,9 @@ const Login = () => {
                   </svg>
                 </div>
                 <p className="text-slate-300 text-sm">
-                  OTP sent to <span className="text-amber-400 font-semibold">+91 {phone}</span>
+                  OTP sent to <span className="text-amber-400 font-semibold">{loginMethod === 'phone' ? '+91 ' : ''}{identifier}</span>
                 </p>
-                <p className="text-slate-500 text-xs mt-1">Check your Spring Boot console for the OTP code</p>
+                <p className="text-slate-500 text-xs mt-1">Check your device for the OTP code</p>
               </div>
 
               {/* OTP Input Boxes */}
@@ -268,7 +365,7 @@ const Login = () => {
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                     onPaste={idx === 0 ? handleOtpPaste : undefined}
-                    className="w-12 h-14 text-center text-xl font-bold bg-slate-700/50 border border-slate-600 text-white rounded-xl focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all"
+                    className="w-12 h-14 text-center text-xl font-bold bg-slate-900/50 border border-slate-600 text-white rounded-xl focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none transition-all"
                   />
                 ))}
               </div>
@@ -290,7 +387,7 @@ const Login = () => {
                 <Button type="button" variant="secondary" onClick={() => { setStep(1); setOtp(['', '', '', '', '', '']); setError(''); }}>
                   ← Back
                 </Button>
-                <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth>
+                <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth className="bg-gradient-to-r from-amber-500 to-amber-400 text-black">
                   Verify OTP & Login
                 </Button>
               </div>
@@ -300,7 +397,7 @@ const Login = () => {
           {/* Register link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-slate-400">
-              Don&apos;t have an account?{' '}
+              Don't have an account?{' '}
               <Link to="/register" className="text-amber-400 hover:text-amber-300 font-medium transition-colors">
                 Create Account
               </Link>
@@ -308,6 +405,16 @@ const Login = () => {
           </div>
         </div>
       </div>
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 };

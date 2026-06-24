@@ -107,6 +107,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Google OAuth Login
+  const googleLogin = async (idToken) => {
+    try {
+      const response = await authApi.googleLogin({ idToken });
+      const apiData = response.data;
+      const authResponse = apiData.data;
+      const jwt = authResponse.token;
+      const userData = normalizeUser(authResponse.user);
+
+      localStorage.setItem('token', jwt);
+      localStorage.setItem('user', JSON.stringify(userData));
+
+      setToken(jwt);
+      setUser(userData);
+
+      return { success: true, user: userData };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Google Sign-In failed.';
+      return { success: false, message };
+    }
+  };
+
   const register = async (userData) => {
     try {
       const response = await authApi.register(userData);
@@ -149,6 +171,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     loginStep1,
     loginStep2,
+    googleLogin,
     logout,
     register,
     updateUser,
