@@ -581,8 +581,8 @@ const toast = useToast();
       <div className="relative w-full max-w-xl my-auto pt-8">
         {/* Branding */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center h-14 w-14 rounded-xl bg-amber-500 mb-4 shadow-lg shadow-amber-500/20">
-            <span className="text-black font-bold text-2xl">S</span>
+          <div className="inline-flex items-center justify-center h-16 w-16 rounded-xl bg-amber-500 mb-4 shadow-lg shadow-amber-500/20 overflow-hidden">
+            <img src="/logo.png" alt="ServeTech Logo" className="h-full w-full object-cover" />
           </div>
           <h1 className="text-3xl font-bold text-white">
             Join Serve<span className="text-amber-400">Tech</span>

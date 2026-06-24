@@ -212,8 +212,8 @@ const toast = useToast();
       <div className="relative w-full max-w-md my-auto pt-8">
         {/* Branding */}
         <div className="text-center mb-8 animate-[fadeIn_0.5s_ease-out]">
-          <div className="inline-flex items-center justify-center h-14 w-14 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 mb-4 shadow-lg shadow-amber-500/30">
-            <span className="text-black font-bold text-2xl">S</span>
+          <div className="inline-flex items-center justify-center h-16 w-16 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 mb-4 shadow-lg shadow-amber-500/30 overflow-hidden">
+            <img src="/logo.png" alt="ServeTech Logo" className="h-full w-full object-cover" />
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight">
             Welcome to Serve<span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-200">Tech</span>
